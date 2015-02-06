@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.ccci:util:3-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/ccci/util/3-SNAPSHOT/util-3-20141216.194808-30.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/ccci/util/3-SNAPSHOT/util-3-20141216.194808-30-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/ccci/util/3-SNAPSHOT/util-3-20141216.194808-30-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
