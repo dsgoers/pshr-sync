@@ -22,7 +22,7 @@ public class ResearchDao
 {
     private LdapEntryDaoImpl ldapEntryDao;
 
-    private HashSet<String> returnAttributes;
+    private static HashSet<String> returnAttributes;
 
     LdapAttributes ldapAttributes = new LdapAttributesActiveDirectory();
 
@@ -39,15 +39,9 @@ public class ResearchDao
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
-            HashMap<String, String> searchAttributes = new HashMap<String, String>();
-            //should the attribute only be added if it is not null?
-            searchAttributes.put("employeeNumber", pshrUser.getEmployeeId());
-            searchAttributes.put("givenName", pshrUser.getFirstName());
-            searchAttributes.put("sn", pshrUser.getLastName());
-
             try
             {
-                ldapEntryDao.getLdapEntry(searchAttributes, returnAttributes);
+                ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser), returnAttributes);
             }
             catch (Exception e)
             {
@@ -67,15 +61,9 @@ public class ResearchDao
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
-            HashMap<String, String> searchAttributes = new HashMap<String, String>();
-            //should the attribute only be added if it is not null?
-            searchAttributes.put("employeeNumber", pshrUser.getEmployeeId());
-            searchAttributes.put("givenName", pshrUser.getFirstName());
-            searchAttributes.put("sn", pshrUser.getLastName());
-
             try
             {
-                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(searchAttributes, returnAttributes);
+                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser), returnAttributes);
 
                 String email = userAttributes.get(ldapAttributes.username).iterator().next();
                 String domain = email.substring(email.indexOf("@") + 1);
@@ -106,15 +94,10 @@ public class ResearchDao
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
-            HashMap<String, String> searchAttributes = new HashMap<String, String>();
-            //should the attribute only be added if it is not null?
-            searchAttributes.put("employeeNumber", pshrUser.getEmployeeId());
-            searchAttributes.put("givenName", pshrUser.getFirstName());
-            searchAttributes.put("sn", pshrUser.getLastName());
-
             try
             {
-                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(searchAttributes, returnAttributes);
+                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser),
+                        returnAttributes);
                 Collection<String> memberOfValues = userAttributes.get(ldapAttributes.memberOf);
 
                 for(String value: memberOfValues)
@@ -136,6 +119,16 @@ public class ResearchDao
 
         }
         return users;
+    }
+
+    private HashMap<String, String> getSearchAttributes(PSHRStaff pshrUser)
+    {
+        HashMap<String, String> searchAttributes = new HashMap<String, String>();
+        searchAttributes.put(ldapAttributes.employeeNumber, pshrUser.getEmployeeId());
+        searchAttributes.put(ldapAttributes.givenname, pshrUser.getFirstName());
+        searchAttributes.put(ldapAttributes.surname, pshrUser.getLastName());
+
+        return searchAttributes;
     }
 
 
@@ -177,6 +170,8 @@ public class ResearchDao
 
     private void setReturnAttributes()
     {
+        returnAttributes = new HashSet<String>();
+
         returnAttributes.add(ldapAttributes.employeeNumber);
         returnAttributes.add(ldapAttributes.givenname);
         returnAttributes.add(ldapAttributes.surname);
