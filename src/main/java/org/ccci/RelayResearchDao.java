@@ -7,30 +7,32 @@ import org.ccci.idm.ldap.Ldap;
 import org.ccci.idm.ldap.attributes.LdapAttributes;
 import org.ccci.idm.ldap.attributes.LdapAttributesActiveDirectory;
 import org.ccci.idm.obj.IdentityUser;
+import org.ccci.util.properties.PropertiesWithFallback;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 
 /**
  * Created by dsgoers on 2/6/15.
  */
-public class ResearchDao
+public class RelayResearchDao
 {
-    private LdapEntryDaoImpl ldapEntryDao;
+    private final LdapAttributes ldapAttributes = new LdapAttributesActiveDirectory();
 
-    private static HashSet<String> returnAttributes;
+    private final String ldapPropertiesFile = "/apps/apps-config/adlsproperties.properties";
 
-    LdapAttributes ldapAttributes = new LdapAttributesActiveDirectory();
-
-    public ResearchDao(String ldapUrl, String rootDn, String username, String password) throws Exception
+    private LdapEntryDaoImpl getLdapEntryDao() throws Exception
     {
-        ldapEntryDao = new LdapEntryDaoImpl(new Ldap(ldapUrl, username, password), rootDn);
+        Properties properties = new PropertiesWithFallback(false, ldapPropertiesFile);
 
-        setReturnAttributes();
+        return new LdapEntryDaoImpl(new Ldap(properties.getProperty("ldapUrl"),
+                properties.getProperty("ldapUsername"), properties.getProperty("ldapPassword")),
+                properties.getProperty("ldapBaseDn"));
     }
 
     public ArrayList<String> getEmployeeIdsWithNoRelayAccount(Set<PSHRStaff> pshrUsers) throws Exception
@@ -41,7 +43,7 @@ public class ResearchDao
         {
             try
             {
-                ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser), returnAttributes);
+                getLdapEntryDao().getLdapEntry(getSearchAttributes(pshrUser), getReturnAttributes());
             }
             catch (Exception e)
             {
@@ -63,7 +65,8 @@ public class ResearchDao
         {
             try
             {
-                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser), returnAttributes);
+                Multimap<String, String> userAttributes = getLdapEntryDao().getLdapEntry(getSearchAttributes
+                        (pshrUser), getReturnAttributes());
 
                 String email = userAttributes.get(ldapAttributes.username).iterator().next();
                 String domain = email.substring(email.indexOf("@") + 1);
@@ -96,8 +99,8 @@ public class ResearchDao
         {
             try
             {
-                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser),
-                        returnAttributes);
+                Multimap<String, String> userAttributes = getLdapEntryDao().getLdapEntry(getSearchAttributes(pshrUser),
+                        getReturnAttributes());
                 Collection<String> memberOfValues = userAttributes.get(ldapAttributes.memberOf);
 
                 for(String value: memberOfValues)
@@ -168,9 +171,9 @@ public class ResearchDao
 
     }
 
-    private void setReturnAttributes()
+    private HashSet<String> getReturnAttributes()
     {
-        returnAttributes = new HashSet<String>();
+        HashSet<String> returnAttributes = new HashSet<String>();
 
         returnAttributes.add(ldapAttributes.employeeNumber);
         returnAttributes.add(ldapAttributes.givenname);
@@ -180,6 +183,8 @@ public class ResearchDao
         returnAttributes.add(ldapAttributes.ministryCode);
         returnAttributes.add(ldapAttributes.departmentNumber);
         returnAttributes.add(ldapAttributes.employeeStatus);
+
+        return returnAttributes;
     }
 
 
