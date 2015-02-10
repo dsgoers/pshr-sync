@@ -2,11 +2,11 @@ package org.ccci;
 
 import com.google.common.collect.Multimap;
 import org.ccci.idm.dao.LdapEntryDaoImpl;
+import org.ccci.idm.dao.pshr.PSHRStaff;
 import org.ccci.idm.ldap.Ldap;
 import org.ccci.idm.ldap.attributes.LdapAttributes;
 import org.ccci.idm.ldap.attributes.LdapAttributesActiveDirectory;
 import org.ccci.idm.obj.IdentityUser;
-import org.cru.migration.domain.PSHRStaff;
 
 import java.util.ArrayList;
 import java.util.Arrays;
