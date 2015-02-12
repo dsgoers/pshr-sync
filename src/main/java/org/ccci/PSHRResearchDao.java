@@ -19,6 +19,16 @@ public class PSHRResearchDao
 
     public static Set<PSHRStaff> getAllNonTerminatedUsStaff() throws PropertyVetoException
     {
+        return getPshrDao().getAllNonTerminatedUSStaff();
+    }
+
+    public static Set<PSHRStaff> getSomeUsStaff() throws PropertyVetoException
+    {
+        return getPshrDao().getSomeUSStaff();
+    }
+
+    private static PSHRDao getPshrDao() throws PropertyVetoException
+    {
         Properties properties = new PropertiesWithFallback(false, propertiesFile);
 
         BasicDataSource basicDataSource  = new BasicDataSourceFactory().createInstance();
@@ -31,6 +41,6 @@ public class PSHRResearchDao
         PSHRDao pshrDao = new PSHRDao();
         pshrDao.setDataSource(basicDataSource);
 
-        return pshrDao.getAllNonTerminatedUSStaff();
+        return pshrDao;
     }
 }
