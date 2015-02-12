@@ -2,6 +2,7 @@ package org.ccci;
 
 import com.google.common.collect.Multimap;
 import org.ccci.idm.dao.LdapEntryDaoImpl;
+import org.ccci.idm.dao.exception.EntryLookupException;
 import org.ccci.idm.dao.pshr.PSHRStaff;
 import org.ccci.idm.ldap.Ldap;
 import org.ccci.idm.ldap.attributes.LdapAttributes;
@@ -24,9 +25,9 @@ public class RelayResearchDao
 {
     private static final LdapAttributes ldapAttributes = new LdapAttributesActiveDirectory();
 
-    private static final String ldapPropertiesFile = "/apps/apps-config/adlsproperties.properties";
+    private static final String ldapPropertiesFile = "/apps/apps-config/adldsproperties.properties";
 
-    private static LdapEntryDaoImpl getLdapEntryDao() throws Exception
+    public static LdapEntryDaoImpl getLdapEntryDao() throws Exception
     {
         Properties properties = new PropertiesWithFallback(false, ldapPropertiesFile);
 
@@ -37,36 +38,37 @@ public class RelayResearchDao
 
     public static ArrayList<String> getEmployeeIdsWithNoRelayAccount(Set<PSHRStaff> pshrUsers) throws Exception
     {
+        LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
         ArrayList<String> employeeIdsWithNoRelayAccount = new ArrayList<String>();
+        HashSet<String> returnAttributes = getReturnAttributes();
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
             try
             {
-                getLdapEntryDao().getLdapEntry(getSearchAttributes(pshrUser), getReturnAttributes());
+                ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser), returnAttributes);
             }
-            catch (Exception e)
+            catch (EntryLookupException e)
             {
-                if(e.getMessage().equals("Could not find one entry for attribute list."))
-                {
-                    employeeIdsWithNoRelayAccount.add(pshrUser.getEmployeeId());
-                }
+                employeeIdsWithNoRelayAccount.add(pshrUser.getEmployeeId());
             }
         }
 
         return employeeIdsWithNoRelayAccount;
     }
 
-    public static ArrayList<IdentityUser> getUsersWithoutCruDomainEmails(Set<PSHRStaff> pshrUsers)
+    public static ArrayList<IdentityUser> getUsersWithoutCruDomainEmails(Set<PSHRStaff> pshrUsers) throws Exception
     {
+        LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
         ArrayList<IdentityUser> users = new ArrayList<IdentityUser>();
+        HashSet<String> returnAttributes = getReturnAttributes();
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
             try
             {
-                Multimap<String, String> userAttributes = getLdapEntryDao().getLdapEntry(getSearchAttributes
-                        (pshrUser), getReturnAttributes());
+                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(getSearchAttributes
+                        (pshrUser), returnAttributes);
 
                 String email = userAttributes.get(ldapAttributes.username).iterator().next();
                 String domain = email.substring(email.indexOf("@") + 1);
@@ -76,13 +78,9 @@ public class RelayResearchDao
                     users.add(identityUserFromUserAttributes(userAttributes));
                 }
             }
-            catch (Exception e)
+            catch (EntryLookupException e)
             {
-                if(e.getMessage().equals("Could not find one entry for attribute list."))
-                {
-                    System.out.println("Could not find user: " + pshrUser.getEmployeeId() + " " + pshrUser.getFirstName()
-                            + pshrUser.getLastName());
-                }
+                System.out.println(e.getMessage());
             }
 
         }
@@ -91,16 +89,18 @@ public class RelayResearchDao
 
 
 
-    public static ArrayList<IdentityUser> getUsersWithoutGoogleMembership(Set<PSHRStaff> pshrUsers)
+    public static ArrayList<IdentityUser> getUsersWithoutGoogleMembership(Set<PSHRStaff> pshrUsers) throws Exception
     {
+        LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
         ArrayList<IdentityUser> users = new ArrayList<IdentityUser>();
+        HashSet<String> returnAttributes = getReturnAttributes();
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
             try
             {
-                Multimap<String, String> userAttributes = getLdapEntryDao().getLdapEntry(getSearchAttributes(pshrUser),
-                        getReturnAttributes());
+                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser),
+                        returnAttributes);
                 Collection<String> memberOfValues = userAttributes.get(ldapAttributes.memberOf);
 
                 for(String value: memberOfValues)
@@ -111,13 +111,9 @@ public class RelayResearchDao
                     }
                 }
             }
-            catch (Exception e)
+            catch (EntryLookupException e)
             {
-                if(e.getMessage().equals("Could not find one entry for attribute list."))
-                {
-                    System.out.println("Could not find user: " + pshrUser.getEmployeeId() + " " + pshrUser.getFirstName()
-                            + pshrUser.getLastName());
-                }
+                System.out.println(e.getMessage());
             }
 
         }
