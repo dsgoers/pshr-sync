@@ -17,17 +17,9 @@ public class PSHRResearchDao
 {
     private final static String propertiesFile = "/apps/apps-config/pshr-properties.properties";
 
-    public static Set<PSHRStaff> getAllNonTerminatedUsStaff() throws PropertyVetoException
-    {
-        return getPshrDao().getAllNonTerminatedUSStaff();
-    }
+    PSHRDao pshrDao;
 
-    public static Set<PSHRStaff> getSomeUsStaff() throws PropertyVetoException
-    {
-        return getPshrDao().getSomeUSStaff();
-    }
-
-    private static PSHRDao getPshrDao() throws PropertyVetoException
+    public PSHRResearchDao() throws PropertyVetoException
     {
         Properties properties = new PropertiesWithFallback(false, propertiesFile);
 
@@ -38,9 +30,17 @@ public class PSHRResearchDao
         basicDataSource.setUsername(properties.getProperty("pshrUsername"));
         basicDataSource.setPassword(properties.getProperty("pshrPassword"));
 
-        PSHRDao pshrDao = new PSHRDao();
+        pshrDao = new PSHRDao();
         pshrDao.setDataSource(basicDataSource);
+    }
 
-        return pshrDao;
+    public Set<PSHRStaff> getAllNonTerminatedUsStaff() throws PropertyVetoException
+    {
+        return pshrDao.getAllNonTerminatedUSStaff();
+    }
+
+    public Set<PSHRStaff> getSomeUsStaff() throws PropertyVetoException
+    {
+        return pshrDao.getSomeUSStaff();
     }
 }
