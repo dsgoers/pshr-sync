@@ -18,8 +18,6 @@ import org.ccci.util.properties.PropertiesWithFallback;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -30,11 +28,11 @@ import java.util.Set;
  */
 public class RelayResearchDao
 {
-    private static final LdapAttributes ldapAttributes = new LdapAttributesActiveDirectory();
+    private final LdapAttributes ldapAttributes = new LdapAttributesActiveDirectory();
 
-    private static final String ldapPropertiesFile = "/apps/apps-config/adldsproperties.properties";
+    private final String ldapPropertiesFile = "/apps/apps-config/adldsproperties.properties";
 
-    public static LdapEntryDaoImpl getLdapEntryDao() throws Exception
+    public LdapEntryDaoImpl getLdapEntryDao() throws Exception
     {
         Properties properties = new PropertiesWithFallback(false, ldapPropertiesFile);
 
@@ -43,7 +41,7 @@ public class RelayResearchDao
                 properties.getProperty("ldapBaseDn"));
     }
 
-    public static List<String> getEmployeeIdsWithNoRelayAccount(Set<PSHRStaff> pshrUsers) throws Exception
+    public List<String> getEmployeeIdsWithNoRelayAccount(Set<PSHRStaff> pshrUsers) throws Exception
     {
         LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
         List<String> employeeIdsWithNoRelayAccount = Lists.newArrayList();
@@ -68,7 +66,7 @@ public class RelayResearchDao
         return employeeIdsWithNoRelayAccount;
     }
 
-    public static List<IdentityUser> getUsersWithoutCruDomainEmails(Set<PSHRStaff> pshrUsers) throws Exception
+    public List<IdentityUser> getUsersWithoutCruDomainEmails(Set<PSHRStaff> pshrUsers) throws Exception
     {
         LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
         List<IdentityUser> users = Lists.newArrayList();
@@ -100,7 +98,7 @@ public class RelayResearchDao
 
 
 
-    public static List<IdentityUser> getUsersWithoutGoogleMembership(Set<PSHRStaff> pshrUsers) throws Exception
+    public List<IdentityUser> getUsersWithoutGoogleMembership(Set<PSHRStaff> pshrUsers) throws Exception
     {
         LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
         List<IdentityUser> users = Lists.newArrayList();
@@ -131,7 +129,7 @@ public class RelayResearchDao
         return users;
     }
 
-    private static Map<String, String> getSearchAttributes(PSHRStaff pshrUser)
+    private Map<String, String> getSearchAttributes(PSHRStaff pshrUser)
     {
         Map<String, String> searchAttributes = Maps.newHashMap();
         searchAttributes.put(ldapAttributes.employeeNumber, pshrUser.getEmployeeId());
@@ -142,7 +140,7 @@ public class RelayResearchDao
     }
 
 
-    private static IdentityUser identityUserFromUserAttributes(Multimap<String, String> userAttributes)
+    private IdentityUser identityUserFromUserAttributes(Multimap<String, String> userAttributes)
     {
         IdentityUser user = new IdentityUser();
         user.getEmployee().setEmployeeId(userAttributes.get(ldapAttributes.employeeNumber).iterator().next());
@@ -160,7 +158,7 @@ public class RelayResearchDao
         return user;
     }
 
-    private static List<String> getCruDomains()
+    private List<String> getCruDomains()
     {
         String cruDomains = "cru.org,agapeitalia.eu,agapeitalia.org,aiaretreatcenter.com,aiasportscomplex.com," +
                 "anythingcantalk.com,arc.gt,arclight.org,arrowheadconferences.org,arrowheadsprings.org," +
@@ -178,7 +176,7 @@ public class RelayResearchDao
 
     }
 
-    private static Set<String> getReturnAttributes()
+    private Set<String> getReturnAttributes()
     {
         Set<String> returnAttributes = Sets.newHashSet();
 
