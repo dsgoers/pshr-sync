@@ -1,6 +1,5 @@
 package org.ccci;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -32,30 +31,38 @@ public class RelayResearchDao
 
     private final String ldapPropertiesFile = "/apps/apps-config/adldsproperties.properties";
 
-    public LdapEntryDaoImpl getLdapEntryDao() throws Exception
+    private LdapEntryDaoImpl ldapEntryDao;
+
+    private Set<String> returnAttributes;
+
+    public RelayResearchDao() throws Exception
     {
         Properties properties = new PropertiesWithFallback(false, ldapPropertiesFile);
 
-        return new LdapEntryDaoImpl(new Ldap(properties.getProperty("ldapUrl"),
+        ldapEntryDao = new LdapEntryDaoImpl(new Ldap(properties.getProperty("ldapUrl"),
                 properties.getProperty("ldapUsername"), properties.getProperty("ldapPassword")),
                 properties.getProperty("ldapBaseDn"));
+
+        returnAttributes = getReturnAttributes();
     }
 
-    public List<String> getEmployeeIdsWithNoRelayAccount(Set<PSHRStaff> pshrUsers) throws Exception
+    public UserMembershipInfo getRelayMembershipInfo(Set<PSHRStaff> pshrUsers) throws Exception
     {
-        LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
-        List<String> employeeIdsWithNoRelayAccount = Lists.newArrayList();
-        Set<String> returnAttributes = getReturnAttributes();
+        Set<IdentityUser> employeesWithoutRelayAccount = Sets.newHashSet();
+        Set<IdentityUser> relayUsers = Sets.newHashSet();
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
             try
             {
-                ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser), returnAttributes);
+                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser),
+                    returnAttributes);
+
+                relayUsers.add(identityUserFromUserAttributes(userAttributes));
             }
             catch (EntryLookupNoResultsException e)
             {
-                employeeIdsWithNoRelayAccount.add(pshrUser.getEmployeeId());
+                employeesWithoutRelayAccount.add(toIdentityUser(pshrUser));
             }
             catch(EntryLookupMoreThanOneResultException e)
             {
@@ -63,14 +70,13 @@ public class RelayResearchDao
             }
         }
 
-        return employeeIdsWithNoRelayAccount;
+        return new UserMembershipInfo(employeesWithoutRelayAccount, relayUsers);
     }
 
-    public List<IdentityUser> getUsersWithoutCruDomainEmails(Set<PSHRStaff> pshrUsers) throws Exception
+    public UserMembershipInfo getCruDomainEmailAddressInfo(Set<PSHRStaff> pshrUsers) throws Exception
     {
-        LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
-        List<IdentityUser> users = Lists.newArrayList();
-        Set<String> returnAttributes = getReturnAttributes();
+        Set<IdentityUser> employeesWithoutCruDomain = Sets.newHashSet();
+        Set<IdentityUser> cruDomainUsers = Sets.newHashSet();
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
@@ -82,9 +88,14 @@ public class RelayResearchDao
                 String email = userAttributes.get(ldapAttributes.username).iterator().next();
                 String domain = email.substring(email.indexOf("@") + 1);
 
-                if(!getCruDomains().contains(domain))
+                //need to ignore case!!
+                if(getCruDomains().contains(domain.toLowerCase()))
                 {
-                    users.add(identityUserFromUserAttributes(userAttributes));
+                    cruDomainUsers.add(identityUserFromUserAttributes(userAttributes));
+                }
+                else
+                {
+                    employeesWithoutCruDomain.add(identityUserFromUserAttributes(userAttributes));
                 }
             }
             catch (EntryLookupException e)
@@ -93,16 +104,15 @@ public class RelayResearchDao
             }
 
         }
-        return users;
+        return new UserMembershipInfo(employeesWithoutCruDomain, cruDomainUsers);
     }
 
 
 
-    public List<IdentityUser> getUsersWithoutGoogleMembership(Set<PSHRStaff> pshrUsers) throws Exception
+    public UserMembershipInfo getGoogleMembershipInfo(Set<PSHRStaff> pshrUsers) throws Exception
     {
-        LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
-        List<IdentityUser> users = Lists.newArrayList();
-        Set<String> returnAttributes = getReturnAttributes();
+        Set<IdentityUser> employeesNotInGoogle = Sets.newHashSet();
+        Set<IdentityUser> googleUsers = Sets.newHashSet();
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
@@ -111,13 +121,20 @@ public class RelayResearchDao
                 Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser),
                         returnAttributes);
                 Collection<String> memberOfValues = userAttributes.get(ldapAttributes.memberOf);
+                boolean isGoogleMember = false;
 
                 for(String value: memberOfValues)
                 {
                     if(value.contains("CN=GoogleApps"))
                     {
-                        users.add(identityUserFromUserAttributes(userAttributes));
+                        googleUsers.add(identityUserFromUserAttributes(userAttributes));
+                        isGoogleMember = true;
+                        break;
                     }
+                }
+                if(!isGoogleMember)
+                {
+                    employeesNotInGoogle.add(identityUserFromUserAttributes(userAttributes));
                 }
             }
             catch (EntryLookupException e)
@@ -126,7 +143,7 @@ public class RelayResearchDao
             }
 
         }
-        return users;
+        return new UserMembershipInfo(employeesNotInGoogle, googleUsers);
     }
 
     private Map<String, String> getSearchAttributes(PSHRStaff pshrUser)
@@ -160,7 +177,7 @@ public class RelayResearchDao
 
     private List<String> getCruDomains()
     {
-        String cruDomains = "cru.org,agapeitalia.eu,agapeitalia.org,aiaretreatcenter.com,aiasportscomplex.com," +
+        String cruDomains = ("cru.org,agapeitalia.eu,agapeitalia.org,aiaretreatcenter.com,aiasportscomplex.com," +
                 "anythingcantalk.com,arc.gt,arclight.org,arrowheadconferences.org,arrowheadsprings.org," +
                 "athletesinaction.org,beyondtheultimate.org,bridgesinternational.com,brokenphonebooth.com," +
                 "campuscrusadeforchrist.com,ccci.org,ce-un.org,crumilitary.org,destinomovement.com,epicmovement.com," +
@@ -170,7 +187,7 @@ public class RelayResearchDao
                 "jfministrypartners.org,keynote.org,magdalenatoday.com,militaryministry.org,milmin.org," +
                 "mission865.org,mpdx.org,mylastdaymovie.com,priorityassociates.org,promail.ru," +
                 "reachinginternationals.com,schindlercenter.com,sharepoint.ccci.org,studentventure.com," +
-                "table71.org,uscm.org,vidaenfamiliahoy.com,vonettebright.org,womenforjesus.org,zcmanagement.com";
+                "table71.org,uscm.org,vidaenfamiliahoy.com,vonettebright.org,womenforjesus.org,zcmanagement.com").toLowerCase();
 
         return new ArrayList<String>(Arrays.asList(cruDomains.split(",")));
 
@@ -188,8 +205,20 @@ public class RelayResearchDao
         returnAttributes.add(ldapAttributes.ministryCode);
         returnAttributes.add(ldapAttributes.departmentNumber);
         returnAttributes.add(ldapAttributes.employeeStatus);
+        returnAttributes.add(ldapAttributes.memberOf);
 
         return returnAttributes;
+    }
+
+    private IdentityUser toIdentityUser(PSHRStaff pshrStaff)
+    {
+        IdentityUser identityUser = new IdentityUser();
+
+        identityUser.getEmployee().setEmployeeId(pshrStaff.getEmployeeId());
+        identityUser.getPerson().setFirst(pshrStaff.getFirstName());
+        identityUser.getPerson().setLast(pshrStaff.getLastName());
+
+        return identityUser;
     }
 
 
