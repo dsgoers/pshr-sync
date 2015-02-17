@@ -1,6 +1,9 @@
 package org.ccci;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.ccci.idm.dao.LdapEntryDaoImpl;
 import org.ccci.idm.dao.exception.EntryLookupException;
 import org.ccci.idm.dao.exception.EntryLookupMoreThanOneResultException;
@@ -17,6 +20,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -38,11 +43,11 @@ public class RelayResearchDao
                 properties.getProperty("ldapBaseDn"));
     }
 
-    public static ArrayList<String> getEmployeeIdsWithNoRelayAccount(Set<PSHRStaff> pshrUsers) throws Exception
+    public static List<String> getEmployeeIdsWithNoRelayAccount(Set<PSHRStaff> pshrUsers) throws Exception
     {
         LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
-        ArrayList<String> employeeIdsWithNoRelayAccount = new ArrayList<String>();
-        HashSet<String> returnAttributes = getReturnAttributes();
+        List<String> employeeIdsWithNoRelayAccount = Lists.newArrayList();
+        Set<String> returnAttributes = getReturnAttributes();
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
@@ -63,11 +68,11 @@ public class RelayResearchDao
         return employeeIdsWithNoRelayAccount;
     }
 
-    public static ArrayList<IdentityUser> getUsersWithoutCruDomainEmails(Set<PSHRStaff> pshrUsers) throws Exception
+    public static List<IdentityUser> getUsersWithoutCruDomainEmails(Set<PSHRStaff> pshrUsers) throws Exception
     {
         LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
-        ArrayList<IdentityUser> users = new ArrayList<IdentityUser>();
-        HashSet<String> returnAttributes = getReturnAttributes();
+        List<IdentityUser> users = Lists.newArrayList();
+        Set<String> returnAttributes = getReturnAttributes();
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
@@ -95,11 +100,11 @@ public class RelayResearchDao
 
 
 
-    public static ArrayList<IdentityUser> getUsersWithoutGoogleMembership(Set<PSHRStaff> pshrUsers) throws Exception
+    public static List<IdentityUser> getUsersWithoutGoogleMembership(Set<PSHRStaff> pshrUsers) throws Exception
     {
         LdapEntryDaoImpl ldapEntryDao = getLdapEntryDao();
-        ArrayList<IdentityUser> users = new ArrayList<IdentityUser>();
-        HashSet<String> returnAttributes = getReturnAttributes();
+        List<IdentityUser> users = Lists.newArrayList();
+        Set<String> returnAttributes = getReturnAttributes();
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
@@ -126,9 +131,9 @@ public class RelayResearchDao
         return users;
     }
 
-    private static HashMap<String, String> getSearchAttributes(PSHRStaff pshrUser)
+    private static Map<String, String> getSearchAttributes(PSHRStaff pshrUser)
     {
-        HashMap<String, String> searchAttributes = new HashMap<String, String>();
+        Map<String, String> searchAttributes = Maps.newHashMap();
         searchAttributes.put(ldapAttributes.employeeNumber, pshrUser.getEmployeeId());
         searchAttributes.put(ldapAttributes.givenname, pshrUser.getFirstName());
         searchAttributes.put(ldapAttributes.surname, pshrUser.getLastName());
@@ -155,7 +160,7 @@ public class RelayResearchDao
         return user;
     }
 
-    private static ArrayList<String> getCruDomains()
+    private static List<String> getCruDomains()
     {
         String cruDomains = "cru.org,agapeitalia.eu,agapeitalia.org,aiaretreatcenter.com,aiasportscomplex.com," +
                 "anythingcantalk.com,arc.gt,arclight.org,arrowheadconferences.org,arrowheadsprings.org," +
@@ -173,9 +178,9 @@ public class RelayResearchDao
 
     }
 
-    private static HashSet<String> getReturnAttributes()
+    private static Set<String> getReturnAttributes()
     {
-        HashSet<String> returnAttributes = new HashSet<String>();
+        Set<String> returnAttributes = Sets.newHashSet();
 
         returnAttributes.add(ldapAttributes.employeeNumber);
         returnAttributes.add(ldapAttributes.givenname);
