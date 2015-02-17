@@ -88,7 +88,6 @@ public class RelayResearchDao
                 String email = userAttributes.get(ldapAttributes.username).iterator().next();
                 String domain = email.substring(email.indexOf("@") + 1);
 
-                //need to ignore case!!
                 if(getCruDomains().contains(domain.toLowerCase()))
                 {
                     cruDomainUsers.add(identityUserFromUserAttributes(userAttributes));
