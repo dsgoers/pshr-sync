@@ -3,6 +3,8 @@ package org.ccci;
 import com.google.common.collect.Multimap;
 import org.ccci.idm.dao.LdapEntryDaoImpl;
 import org.ccci.idm.dao.exception.EntryLookupException;
+import org.ccci.idm.dao.exception.EntryLookupMoreThanOneResultException;
+import org.ccci.idm.dao.exception.EntryLookupNoResultsException;
 import org.ccci.idm.dao.pshr.PSHRStaff;
 import org.ccci.idm.ldap.Ldap;
 import org.ccci.idm.ldap.attributes.LdapAttributes;
@@ -48,9 +50,13 @@ public class RelayResearchDao
             {
                 ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser), returnAttributes);
             }
-            catch (EntryLookupException e)
+            catch (EntryLookupNoResultsException e)
             {
                 employeeIdsWithNoRelayAccount.add(pshrUser.getEmployeeId());
+            }
+            catch(EntryLookupMoreThanOneResultException e)
+            {
+                System.out.println("User has more than one relay account: " + pshrUser.toString());
             }
         }
 
