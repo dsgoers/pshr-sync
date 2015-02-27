@@ -1,9 +1,10 @@
 package org.ccci;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -15,7 +16,7 @@ public class SyncUserCsvWriter
     {
         FileWriter writer = new FileWriter(fileName);
 
-        Set<String> headers = Sets.newHashSet();
+        List<String> headers = Lists.newArrayList();
         headers.add("Employee Number");
         headers.add("First Name");
         headers.add("Last Name");
@@ -52,7 +53,7 @@ public class SyncUserCsvWriter
     {
         FileWriter writer = new FileWriter(fileName);
 
-        Set<String> headers = Sets.newHashSet();
+        List<String> headers = Lists.newArrayList();
         headers.add("Employee Number");
         headers.add("First Name");
         headers.add("Last Name");
