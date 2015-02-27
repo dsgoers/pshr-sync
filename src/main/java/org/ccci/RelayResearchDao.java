@@ -159,25 +159,56 @@ public class RelayResearchDao
             String employeeId = relayUser.getEmployee().getEmployeeId();
             String username = relayUser.getAccount().getUsername();
 
-            for(PSHRStaff pshrStaff: pshrStaffs)
-            {
-                if(pshrStaff.getEmployeeId().equalsIgnoreCase(employeeId))
-                {
-                    if(pshrStaff.getEmail().equalsIgnoreCase(username))
-                    {
-                        matchingEmails.add(relayUser);
-                    }
-                    else
-                    {
-                        differentEmails.add(relayUser);
-                    }
-                    break;
-                }
-            }
+            PSHRStaff pshrStaff = getPshrUserByEmployeeId(pshrStaffs, employeeId);
 
+            if(pshrStaff.getEmail().equalsIgnoreCase(username))
+            {
+                matchingEmails.add(relayUser);
+            }
+            else
+            {
+                differentEmails.add(relayUser);
+            }
         }
 
         return new UserMembershipInfo(differentEmails, matchingEmails);
+    }
+
+    public UserMembershipInfo splitNonMatchingUsers(Set<IdentityUser> nonMatchingUsers, Set<PSHRStaff> pshrStaffs)
+    {
+        Set<IdentityUser> cruOwnedPshrEmailUsers = Sets.newHashSet();
+        Set<IdentityUser> nonCruPshrEmailUsers = Sets.newHashSet();
+
+        for(IdentityUser relayUser: nonMatchingUsers)
+        {
+            PSHRStaff pshrStaff = getPshrUserByEmployeeId(pshrStaffs, relayUser.getEmployee().getEmployeeId());
+            String email = pshrStaff.getEmail();
+            String domain = email.substring(email.indexOf("@") + 1);
+
+            if (getCruDomains().contains(domain.toLowerCase()))
+            {
+                cruOwnedPshrEmailUsers.add(relayUser);
+            }
+            else
+            {
+                nonCruPshrEmailUsers.add(relayUser);
+            }
+        }
+
+        return new UserMembershipInfo(nonCruPshrEmailUsers, cruOwnedPshrEmailUsers);
+    }
+
+    private PSHRStaff getPshrUserByEmployeeId(Set<PSHRStaff> pshrStaffs, String employeeId)
+    {
+        for(PSHRStaff pshrStaff: pshrStaffs)
+        {
+            if(pshrStaff.getEmployeeId().equals(employeeId))
+            {
+                return pshrStaff;
+            }
+        }
+
+        throw new NullPointerException("No PSHR staff found matching employee id: " + employeeId);
     }
 
     private IdentityUser identityUserFromUserAttributes(Multimap<String, String> userAttributes)
