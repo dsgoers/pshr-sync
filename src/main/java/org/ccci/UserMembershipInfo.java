@@ -18,6 +18,11 @@ public class UserMembershipInfo
         this.members = members;
     }
 
+    public int getTotalUsers()
+    {
+        return usersWithoutMembership.size() + members.size();
+    }
+
     public Set<IdentityUser> getUsersWithoutMembership()
     {
         return usersWithoutMembership;
