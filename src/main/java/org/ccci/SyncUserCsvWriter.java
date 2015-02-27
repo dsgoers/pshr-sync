@@ -1,7 +1,6 @@
 package org.ccci;
 
 import com.google.common.collect.Sets;
-import org.ccci.idm.obj.IdentityUser;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,9 +9,9 @@ import java.util.Set;
 /**
  * Created by dsgoers on 2/17/15.
  */
-public class IdentityUserCsvWriter
+public class SyncUserCsvWriter
 {
-    public void writeIdentityUsersMinistryInfoToCsv(String fileName, Set<IdentityUser> users) throws IOException
+    public void writeUsersMinistryInfoToCsv(String fileName, Set<SyncUser> users) throws IOException
     {
         FileWriter writer = new FileWriter(fileName);
 
@@ -32,16 +31,16 @@ public class IdentityUserCsvWriter
         }
         writer.append('\n');
 
-        for(IdentityUser user: users)
+        for(SyncUser user: users)
         {
-            writeValue(writer, user.getEmployee().getEmployeeId());
-            writeValue(writer, user.getPerson().getFirst());
-            writeValue(writer, user.getPerson().getLast());
-            writeValue(writer, user.getAccount().getUsername());
-            writeValue(writer, user.getDesignation().getDesignationId());
-            writeValue(writer, user.getEmployee().getMinistry());
-            writeValue(writer, user.getEmployee().getDepartmentNumber());
-            writeValue(writer, user.getEmployee().getStatusCode());
+            writeValue(writer, user.getEmployeeId());
+            writeValue(writer, user.getFirstName());
+            writeValue(writer, user.getLastName());
+            writeValue(writer, user.getRelayUsername());
+            writeValue(writer, user.getDesignation());
+            writeValue(writer, user.getMinistry());
+            writeValue(writer, user.getDepartment());
+            writeValue(writer, user.getStatus());
             writer.append('\n');
         }
 
@@ -49,7 +48,7 @@ public class IdentityUserCsvWriter
         writer.close();
     }
 
-    public void writeIdentityUsersToCsv(String fileName, Set<IdentityUser> users) throws IOException
+    public void writeUsersToCsv(String fileName, Set<SyncUser> users) throws IOException
     {
         FileWriter writer = new FileWriter(fileName);
 
@@ -64,11 +63,11 @@ public class IdentityUserCsvWriter
         }
         writer.append('\n');
 
-        for(IdentityUser user: users)
+        for(SyncUser user: users)
         {
-            writeValue(writer, user.getEmployee().getEmployeeId());
-            writeValue(writer, user.getPerson().getFirst());
-            writeValue(writer, user.getPerson().getLast());
+            writeValue(writer, user.getEmployeeId());
+            writeValue(writer, user.getFirstName());
+            writeValue(writer, user.getLastName());
             writer.append('\n');
         }
 

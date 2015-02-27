@@ -1,7 +1,5 @@
 package org.ccci;
 
-import org.ccci.idm.obj.IdentityUser;
-
 import java.util.Set;
 
 /**
@@ -9,10 +7,10 @@ import java.util.Set;
  */
 public class UserMembershipInfo
 {
-    private Set<IdentityUser> usersWithoutMembership;
-    private Set<IdentityUser> members;
+    private Set<SyncUser> usersWithoutMembership;
+    private Set<SyncUser> members;
 
-    public UserMembershipInfo(Set<IdentityUser> usersWithoutMembership, Set<IdentityUser> members)
+    public UserMembershipInfo(Set<SyncUser> usersWithoutMembership, Set<SyncUser> members)
     {
         this.usersWithoutMembership = usersWithoutMembership;
         this.members = members;
@@ -23,22 +21,22 @@ public class UserMembershipInfo
         return usersWithoutMembership.size() + members.size();
     }
 
-    public Set<IdentityUser> getUsersWithoutMembership()
+    public Set<SyncUser> getUsersWithoutMembership()
     {
         return usersWithoutMembership;
     }
 
-    public void setUsersWithoutMembership(Set<IdentityUser> usersWithoutMembership)
+    public void setUsersWithoutMembership(Set<SyncUser> usersWithoutMembership)
     {
         this.usersWithoutMembership = usersWithoutMembership;
     }
 
-    public Set<IdentityUser> getMembers()
+    public Set<SyncUser> getMembers()
     {
         return members;
     }
 
-    public void setMembers(Set<IdentityUser> members)
+    public void setMembers(Set<SyncUser> members)
     {
         this.members = members;
     }
