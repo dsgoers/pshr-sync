@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.Set;
 
@@ -55,7 +56,10 @@ public class RelayResearchDao
         {
             try
             {
-                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser),
+                Map<String, String> searchAttributes = Maps.newHashMap();
+                searchAttributes.put(ldapAttributes.employeeNumber, pshrUser.getEmployeeId());
+
+                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(searchAttributes,
                     returnAttributes);
 
                 relayUsers.add(identityUserFromUserAttributes(userAttributes));
@@ -68,56 +72,52 @@ public class RelayResearchDao
             {
                 System.out.println("User has more than one relay account: " + pshrUser.toString());
             }
+            catch(NoSuchElementException e)
+            {
+                e.printStackTrace();
+            }
         }
 
         return new UserMembershipInfo(employeesWithoutRelayAccount, relayUsers);
     }
 
-    public UserMembershipInfo getCruDomainEmailAddressInfo(Set<PSHRStaff> pshrUsers) throws Exception
+    public UserMembershipInfo getCruDomainEmailAddressInfo(Set<IdentityUser> identityUsers) throws Exception
     {
         Set<IdentityUser> employeesWithoutCruDomain = Sets.newHashSet();
         Set<IdentityUser> cruDomainUsers = Sets.newHashSet();
 
-        for(PSHRStaff pshrUser: pshrUsers)
+        for(IdentityUser identityUser: identityUsers)
         {
-            try
+            String email = identityUser.getAccount().getUsername();
+            String domain = email.substring(email.indexOf("@") + 1);
+
+            if (getCruDomains().contains(domain.toLowerCase()))
             {
-                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(getSearchAttributes
-                        (pshrUser), returnAttributes);
-
-                String email = userAttributes.get(ldapAttributes.username).iterator().next();
-                String domain = email.substring(email.indexOf("@") + 1);
-
-                if(getCruDomains().contains(domain.toLowerCase()))
-                {
-                    cruDomainUsers.add(identityUserFromUserAttributes(userAttributes));
-                }
-                else
-                {
-                    employeesWithoutCruDomain.add(identityUserFromUserAttributes(userAttributes));
-                }
+                cruDomainUsers.add(identityUser);
             }
-            catch (EntryLookupException e)
+            else
             {
-                System.out.println(e.getMessage());
+                employeesWithoutCruDomain.add(identityUser);
             }
-
         }
         return new UserMembershipInfo(employeesWithoutCruDomain, cruDomainUsers);
     }
 
 
 
-    public UserMembershipInfo getGoogleMembershipInfo(Set<PSHRStaff> pshrUsers) throws Exception
+    public UserMembershipInfo getGoogleMembershipInfo(Set<IdentityUser> identityUsers) throws Exception
     {
         Set<IdentityUser> employeesNotInGoogle = Sets.newHashSet();
         Set<IdentityUser> googleUsers = Sets.newHashSet();
 
-        for(PSHRStaff pshrUser: pshrUsers)
+        for(IdentityUser identityUser: identityUsers)
         {
             try
             {
-                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(getSearchAttributes(pshrUser),
+                Map<String, String> searchAttributes = Maps.newHashMap();
+                searchAttributes.put(ldapAttributes.username, identityUser.getAccount().getUsername());
+
+                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(searchAttributes,
                         returnAttributes);
                 Collection<String> memberOfValues = userAttributes.get(ldapAttributes.memberOf);
                 boolean isGoogleMember = false;
@@ -126,35 +126,28 @@ public class RelayResearchDao
                 {
                     if(value.contains("CN=GoogleApps"))
                     {
-                        googleUsers.add(identityUserFromUserAttributes(userAttributes));
+                        googleUsers.add(identityUser);
                         isGoogleMember = true;
                         break;
                     }
                 }
                 if(!isGoogleMember)
                 {
-                    employeesNotInGoogle.add(identityUserFromUserAttributes(userAttributes));
+                    employeesNotInGoogle.add(identityUser);
                 }
             }
             catch (EntryLookupException e)
             {
-                System.out.println(e.getMessage());
+                //System.out.println(e.getMessage());
+            }
+            catch(NoSuchElementException e)
+            {
+                e.printStackTrace();
             }
 
         }
         return new UserMembershipInfo(employeesNotInGoogle, googleUsers);
     }
-
-    private Map<String, String> getSearchAttributes(PSHRStaff pshrUser)
-    {
-        Map<String, String> searchAttributes = Maps.newHashMap();
-        searchAttributes.put(ldapAttributes.employeeNumber, pshrUser.getEmployeeId());
-        searchAttributes.put(ldapAttributes.givenname, pshrUser.getFirstName());
-        searchAttributes.put(ldapAttributes.surname, pshrUser.getLastName());
-
-        return searchAttributes;
-    }
-
 
     private IdentityUser identityUserFromUserAttributes(Multimap<String, String> userAttributes)
     {
@@ -166,7 +159,14 @@ public class RelayResearchDao
         user.getAccount().setUsername(userAttributes.get(ldapAttributes.username).iterator().next());
         user.getDesignation().setDesignationId(userAttributes.get(ldapAttributes.designationId).iterator
                 ().next());
-        user.getEmployee().setMinistry(userAttributes.get(ldapAttributes.ministryCode).iterator().next());
+        try
+        {
+            user.getEmployee().setMinistry(userAttributes.get(ldapAttributes.ministryCode).iterator().next());
+        }
+        catch (NoSuchElementException e)
+        {
+
+        }
         user.getEmployee().setDepartmentNumber(userAttributes.get(ldapAttributes.departmentNumber).iterator().next());
         user.getEmployee().setStatusCode(userAttributes.get(ldapAttributes.employeeStatus).iterator()
                 .next());
