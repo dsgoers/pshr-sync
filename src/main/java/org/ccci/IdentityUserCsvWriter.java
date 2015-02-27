@@ -12,11 +12,11 @@ import java.util.Set;
  */
 public class IdentityUserCsvWriter
 {
-    private Set<String> headers;
-
-    public IdentityUserCsvWriter() throws IOException
+    public void writeIdentityUsersMinistryInfoToCsv(String fileName, Set<IdentityUser> users) throws IOException
     {
-        headers = Sets.newHashSet();
+        FileWriter writer = new FileWriter(fileName);
+
+        Set<String> headers = Sets.newHashSet();
         headers.add("Employee Number");
         headers.add("First Name");
         headers.add("Last Name");
@@ -25,41 +25,61 @@ public class IdentityUserCsvWriter
         headers.add("Ministry");
         headers.add("Department");
         headers.add("Status");
+
+        for(String header: headers)
+        {
+            writeValue(writer, header);
+        }
+        writer.append('\n');
+
+        for(IdentityUser user: users)
+        {
+            writeValue(writer, user.getEmployee().getEmployeeId());
+            writeValue(writer, user.getPerson().getFirst());
+            writeValue(writer, user.getPerson().getLast());
+            writeValue(writer, user.getAccount().getUsername());
+            writeValue(writer, user.getDesignation().getDesignationId());
+            writeValue(writer, user.getEmployee().getMinistry());
+            writeValue(writer, user.getEmployee().getDepartmentNumber());
+            writeValue(writer, user.getEmployee().getStatusCode());
+            writer.append('\n');
+        }
+
+        writer.flush();
+        writer.close();
     }
 
     public void writeIdentityUsersToCsv(String fileName, Set<IdentityUser> users) throws IOException
     {
         FileWriter writer = new FileWriter(fileName);
 
+        Set<String> headers = Sets.newHashSet();
+        headers.add("Employee Number");
+        headers.add("First Name");
+        headers.add("Last Name");
+
         for(String header: headers)
         {
-            writer.append(header);
-            writer.append(',');
+            writeValue(writer, header);
         }
         writer.append('\n');
 
         for(IdentityUser user: users)
         {
-            writer.append(user.getEmployee().getEmployeeId());
-            writer.append(',');
-            writer.append(user.getPerson().getFirst());
-            writer.append(',');
-            writer.append(user.getPerson().getLast());
-            writer.append(',');
-            writer.append(user.getAccount().getUsername());
-            writer.append(',');
-            writer.append(user.getDesignation().getDesignationId());
-            writer.append(',');
-            writer.append(user.getEmployee().getMinistry());
-            writer.append(',');
-            writer.append(user.getEmployee().getDepartmentNumber());
-            writer.append(',');
-            writer.append(user.getEmployee().getStatusCode());
+            writeValue(writer, user.getEmployee().getEmployeeId());
+            writeValue(writer, user.getPerson().getFirst());
+            writeValue(writer, user.getPerson().getLast());
             writer.append('\n');
         }
 
         writer.flush();
         writer.close();
+    }
+
+    private void writeValue(FileWriter writer, String value) throws IOException
+    {
+        writer.append(value);
+        writer.append(',');
     }
 
 }
