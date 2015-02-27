@@ -149,6 +149,37 @@ public class RelayResearchDao
         return new UserMembershipInfo(employeesNotInGoogle, googleUsers);
     }
 
+    public UserMembershipInfo getPeopleSoftPrimaryEmailInfo(Set<IdentityUser> relayUsers, Set<PSHRStaff> pshrStaffs)
+    {
+        Set<IdentityUser> matchingEmails = Sets.newHashSet();
+        Set<IdentityUser> differentEmails = Sets.newHashSet();
+
+        for(IdentityUser relayUser: relayUsers)
+        {
+            String employeeId = relayUser.getEmployee().getEmployeeId();
+            String username = relayUser.getAccount().getUsername();
+
+            for(PSHRStaff pshrStaff: pshrStaffs)
+            {
+                if(pshrStaff.getEmployeeId().equalsIgnoreCase(employeeId))
+                {
+                    if(pshrStaff.getEmail().equalsIgnoreCase(username))
+                    {
+                        matchingEmails.add(relayUser);
+                    }
+                    else
+                    {
+                        differentEmails.add(relayUser);
+                    }
+                    break;
+                }
+            }
+
+        }
+
+        return new UserMembershipInfo(differentEmails, matchingEmails);
+    }
+
     private IdentityUser identityUserFromUserAttributes(Multimap<String, String> userAttributes)
     {
         IdentityUser user = new IdentityUser();
