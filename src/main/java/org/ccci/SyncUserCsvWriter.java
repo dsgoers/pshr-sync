@@ -12,7 +12,7 @@ import java.util.Set;
  */
 public class SyncUserCsvWriter
 {
-    public void writeUsersMinistryInfoToCsv(String fileName, Set<SyncUser> users) throws IOException
+    public void writeSyncUsersToCsv(String fileName, Set<SyncUser> users) throws IOException
     {
         FileWriter writer = new FileWriter(fileName);
 
@@ -20,7 +20,8 @@ public class SyncUserCsvWriter
         headers.add("Employee Number");
         headers.add("First Name");
         headers.add("Last Name");
-        headers.add("Username");
+        headers.add("Relay username");
+        headers.add("PSHR email");
         headers.add("Designation");
         headers.add("Ministry");
         headers.add("Department");
@@ -38,6 +39,7 @@ public class SyncUserCsvWriter
             writeValue(writer, user.getFirstName());
             writeValue(writer, user.getLastName());
             writeValue(writer, user.getRelayUsername());
+            writeValue(writer, user.getPshrEmail());
             writeValue(writer, user.getDesignation());
             writeValue(writer, user.getMinistry());
             writeValue(writer, user.getDepartment());
@@ -49,12 +51,13 @@ public class SyncUserCsvWriter
         writer.close();
     }
 
-    public void writeUsersToCsv(String fileName, Set<SyncUser> users) throws IOException
+    public void writePshrUsersToCsv(String fileName, Set<SyncUser> users) throws IOException
     {
         FileWriter writer = new FileWriter(fileName);
 
         List<String> headers = Lists.newArrayList();
         headers.add("Employee Number");
+        headers.add("PSHR email");
         headers.add("First Name");
         headers.add("Last Name");
 
@@ -67,6 +70,7 @@ public class SyncUserCsvWriter
         for(SyncUser user: users)
         {
             writeValue(writer, user.getEmployeeId());
+            writeValue(writer, user.getPshrEmail());
             writeValue(writer, user.getFirstName());
             writeValue(writer, user.getLastName());
             writer.append('\n');

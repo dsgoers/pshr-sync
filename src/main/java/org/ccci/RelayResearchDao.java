@@ -61,7 +61,9 @@ public class RelayResearchDao
                 Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(searchAttributes,
                     returnAttributes);
 
-                relayUsers.add(new SyncUser(userAttributes));
+                SyncUser syncUser = new SyncUser(userAttributes);
+                syncUser.setPshrEmail(pshrUser.getEmail());
+                relayUsers.add(syncUser);
             }
             catch (EntryLookupNoResultsException e)
             {

@@ -28,45 +28,45 @@ public class Sync
         }
 
         System.out.println("all users in peoplesoft: " + identityUserStaffs.size());
-        writer.writeUsersToCsv(directory + "all pshr users.csv", identityUserStaffs);
+        writer.writePshrUsersToCsv(directory + "all pshr users.csv", identityUserStaffs);
 
         UserMembershipInfo info = relayResearchDao.getRelayMembershipInfo(pshrStaffs);
         System.out.println("relay: " + info.getMembers().size() + ", non relay: " + info.getUsersWithoutMembership
                 ().size() + ", total: " + info.getTotalUsers());
-        writer.writeUsersMinistryInfoToCsv(directory + "relay users.csv", info.getMembers());
-        writer.writeUsersToCsv(directory + "non relay users.csv", info.getUsersWithoutMembership());
+        writer.writeSyncUsersToCsv(directory + "relay users.csv", info.getMembers());
+        writer.writePshrUsersToCsv(directory + "non relay users.csv", info.getUsersWithoutMembership());
 
 
 
         info = relayResearchDao.getCruDomainEmailAddressInfo(info.getMembers());
         System.out.println("cru domain: " + info.getMembers().size() + ", non cru domain: " +
                 info.getUsersWithoutMembership().size() + ", total: " + info.getTotalUsers());
-        writer.writeUsersMinistryInfoToCsv(directory + "cru domain users.csv", info.getMembers());
-        writer.writeUsersMinistryInfoToCsv(directory + "non cru domain users.csv", info
+        writer.writeSyncUsersToCsv(directory + "cru domain users.csv", info.getMembers());
+        writer.writeSyncUsersToCsv(directory + "non cru domain users.csv", info
                 .getUsersWithoutMembership());
 
 
         info = relayResearchDao.getGoogleMembershipInfo(info.getMembers());
         System.out.println("google: " + info.getMembers().size() + ", non google: " +
                 info.getUsersWithoutMembership().size() + ", total: " + info.getTotalUsers());
-        writer.writeUsersMinistryInfoToCsv(directory + "google users.csv", info.getMembers());
-        writer.writeUsersMinistryInfoToCsv(directory + "non google users.csv", info.getUsersWithoutMembership());
+        writer.writeSyncUsersToCsv(directory + "google users.csv", info.getMembers());
+        writer.writeSyncUsersToCsv(directory + "non google users.csv", info.getUsersWithoutMembership());
 
 
         info = relayResearchDao.getPeopleSoftPrimaryEmailInfo(info.getMembers(), pshrStaffs);
         System.out.println("pshr matching: " + info.getMembers().size() + ", non pshr matching: " +
                 info.getUsersWithoutMembership().size() + ", total: " + info.getTotalUsers());
-        writer.writeUsersMinistryInfoToCsv(directory + "pshr matching users.csv", info.getMembers());
-        writer.writeUsersMinistryInfoToCsv(directory + "non pshr matching users.csv", info
+        writer.writeSyncUsersToCsv(directory + "pshr matching users.csv", info.getMembers());
+        writer.writeSyncUsersToCsv(directory + "non pshr matching users.csv", info
                 .getUsersWithoutMembership());
 
 
         info = relayResearchDao.splitNonMatchingUsers(info.getUsersWithoutMembership(), pshrStaffs);
         System.out.println("non matching with Cru domain: " + info.getMembers().size() + ", non matching without Cru " +
                 "domain: " + info.getUsersWithoutMembership().size() + ", total: " + info.getTotalUsers());
-        writer.writeUsersMinistryInfoToCsv(directory + "pshr non matching users with cru domain.csv", info
+        writer.writeSyncUsersToCsv(directory + "pshr non matching users with cru domain.csv", info
                 .getMembers());
-        writer.writeUsersMinistryInfoToCsv(directory + "pshr non matching users without cru domain.csv", info
+        writer.writeSyncUsersToCsv(directory + "pshr non matching users without cru domain.csv", info
                 .getUsersWithoutMembership());
 
 
