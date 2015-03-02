@@ -23,6 +23,8 @@ public class SyncUser
     private String department;
     private String status;
 
+    private boolean inGoogle;
+
     private final LdapAttributes ldapAttributes = new LdapAttributesActiveDirectory();
 
     public SyncUser(IdentityUser identityUser)
@@ -112,5 +114,15 @@ public class SyncUser
     public void setPshrEmail(String pshrEmail)
     {
         this.pshrEmail = pshrEmail;
+    }
+
+    public boolean isInGoogle()
+    {
+        return inGoogle;
+    }
+
+    public void setInGoogle(boolean inGoogle)
+    {
+        this.inGoogle = inGoogle;
     }
 }
