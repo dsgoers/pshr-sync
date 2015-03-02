@@ -13,6 +13,7 @@ import org.ccci.idm.ldap.attributes.LdapAttributes;
 import org.ccci.idm.ldap.attributes.LdapAttributesActiveDirectory;
 import org.ccci.util.properties.PropertiesWithFallback;
 
+import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -46,10 +47,9 @@ public class RelayResearchDao
         returnAttributes = getReturnAttributes();
     }
 
-    public UserMembershipInfo getRelayMembershipInfo(Set<PSHRStaff> pshrUsers) throws Exception
+    public Set<SyncUser> getRelayData(Set<PSHRStaff> pshrUsers) throws Exception
     {
-        Set<SyncUser> employeesWithoutRelayAccount = Sets.newHashSet();
-        Set<SyncUser> relayUsers = Sets.newHashSet();
+        Set<SyncUser> syncUsers = Sets.newHashSet();
 
         for(PSHRStaff pshrUser: pshrUsers)
         {
@@ -59,15 +59,15 @@ public class RelayResearchDao
                 searchAttributes.put(ldapAttributes.employeeNumber, pshrUser.getEmployeeId());
 
                 Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(searchAttributes,
-                    returnAttributes);
+                        returnAttributes);
 
                 SyncUser syncUser = new SyncUser(userAttributes);
                 syncUser.setPshrEmail(pshrUser.getEmail());
-                relayUsers.add(syncUser);
+                syncUsers.add(syncUser);
             }
             catch (EntryLookupNoResultsException e)
             {
-                employeesWithoutRelayAccount.add(new SyncUser(pshrUser));
+                syncUsers.add(new SyncUser(pshrUser));
             }
             catch(EntryLookupMoreThanOneResultException e)
             {
@@ -79,139 +79,43 @@ public class RelayResearchDao
             }
         }
 
-        return new UserMembershipInfo(employeesWithoutRelayAccount, relayUsers);
+        return syncUsers;
     }
 
-    public UserMembershipInfo getCruDomainEmailAddressInfo(Set<SyncUser> syncUsers) throws Exception
+    public boolean isInGoogle(SyncUser syncUser) throws NamingException
     {
-        Set<SyncUser> employeesWithoutCruDomain = Sets.newHashSet();
-        Set<SyncUser> cruDomainUsers = Sets.newHashSet();
-
-        for(SyncUser syncUser: syncUsers)
+        try
         {
-            String email = syncUser.getRelayUsername();
-            String domain = email.substring(email.indexOf("@") + 1);
+            Map<String, String> searchAttributes = Maps.newHashMap();
+            searchAttributes.put(ldapAttributes.username, syncUser.getRelayUsername());
 
-            if (getCruDomains().contains(domain.toLowerCase()))
+            Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(searchAttributes,
+                    returnAttributes);
+            Collection<String> memberOfValues = userAttributes.get(ldapAttributes.memberOf);
+
+            for(String value: memberOfValues)
             {
-                cruDomainUsers.add(syncUser);
-            }
-            else
-            {
-                employeesWithoutCruDomain.add(syncUser);
-            }
-        }
-        return new UserMembershipInfo(employeesWithoutCruDomain, cruDomainUsers);
-    }
-
-
-
-    public UserMembershipInfo getGoogleMembershipInfo(Set<SyncUser> syncUsers) throws Exception
-    {
-        Set<SyncUser> employeesNotInGoogle = Sets.newHashSet();
-        Set<SyncUser> googleUsers = Sets.newHashSet();
-
-        for(SyncUser syncUser: syncUsers)
-        {
-            try
-            {
-                Map<String, String> searchAttributes = Maps.newHashMap();
-                searchAttributes.put(ldapAttributes.username, syncUser.getRelayUsername());
-
-                Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(searchAttributes,
-                        returnAttributes);
-                Collection<String> memberOfValues = userAttributes.get(ldapAttributes.memberOf);
-                boolean isGoogleMember = false;
-
-                for(String value: memberOfValues)
+                if(value.contains("CN=GoogleApps"))
                 {
-                    if(value.contains("CN=GoogleApps"))
-                    {
-                        googleUsers.add(syncUser);
-                        isGoogleMember = true;
-                        break;
-                    }
-                }
-                if(!isGoogleMember)
-                {
-                    employeesNotInGoogle.add(syncUser);
+                    return true;
                 }
             }
-            catch (EntryLookupException e)
-            {
-                //System.out.println(e.getMessage());
-            }
-            catch(NoSuchElementException e)
-            {
-                e.printStackTrace();
-            }
-
+            return false;
         }
-        return new UserMembershipInfo(employeesNotInGoogle, googleUsers);
+        catch (EntryLookupException e)
+        {
+            //System.out.println(e.getMessage());
+        }
+        catch(NoSuchElementException e)
+        {
+            e.printStackTrace();
+        }
+        return false;
     }
 
-    public UserMembershipInfo getPeopleSoftPrimaryEmailInfo(Set<SyncUser> syncUsers, Set<PSHRStaff> pshrStaffs)
+    public boolean isCruDomain(String domain)
     {
-        Set<SyncUser> matchingEmails = Sets.newHashSet();
-        Set<SyncUser> differentEmails = Sets.newHashSet();
-
-        for(SyncUser syncUser: syncUsers)
-        {
-            String employeeId = syncUser.getEmployeeId();
-            String username = syncUser.getRelayUsername();
-
-            PSHRStaff pshrStaff = getPshrUserByEmployeeId(pshrStaffs, employeeId);
-
-            if(pshrStaff.getEmail().equalsIgnoreCase(username))
-            {
-                matchingEmails.add(syncUser);
-            }
-            else
-            {
-                differentEmails.add(syncUser);
-            }
-        }
-
-        return new UserMembershipInfo(differentEmails, matchingEmails);
-    }
-
-    public UserMembershipInfo splitNonMatchingUsers(Set<SyncUser> nonMatchingUsers, Set<PSHRStaff> pshrStaffs)
-    {
-        Set<SyncUser> cruOwnedPshrEmailUsers = Sets.newHashSet();
-        Set<SyncUser> nonCruPshrEmailUsers = Sets.newHashSet();
-
-        for(SyncUser syncUser: nonMatchingUsers)
-        {
-            PSHRStaff pshrStaff = getPshrUserByEmployeeId(pshrStaffs, syncUser.getEmployeeId());
-            String email = pshrStaff.getEmail();
-            String domain = email.substring(email.indexOf("@") + 1);
-
-            syncUser.setPshrEmail(email);
-
-            if (getCruDomains().contains(domain.toLowerCase()))
-            {
-                cruOwnedPshrEmailUsers.add(syncUser);
-            }
-            else
-            {
-                nonCruPshrEmailUsers.add(syncUser);
-            }
-        }
-
-        return new UserMembershipInfo(nonCruPshrEmailUsers, cruOwnedPshrEmailUsers);
-    }
-
-    private PSHRStaff getPshrUserByEmployeeId(Set<PSHRStaff> pshrStaffs, String employeeId)
-    {
-        for(PSHRStaff pshrStaff: pshrStaffs)
-        {
-            if(pshrStaff.getEmployeeId().equals(employeeId))
-            {
-                return pshrStaff;
-            }
-        }
-
-        throw new NullPointerException("No PSHR staff found matching employee id: " + employeeId);
+        return getCruDomains().contains(domain.toLowerCase());
     }
 
     private List<String> getCruDomains()

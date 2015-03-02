@@ -1,43 +1,41 @@
 package org.ccci;
 
-import java.util.Set;
 
 /**
  * Created by dsgoers on 2/17/15.
  */
 public class UserMembershipInfo
 {
-    private Set<SyncUser> usersWithoutMembership;
-    private Set<SyncUser> members;
-
-    public UserMembershipInfo(Set<SyncUser> usersWithoutMembership, Set<SyncUser> members)
-    {
-        this.usersWithoutMembership = usersWithoutMembership;
-        this.members = members;
-    }
+    private int members;
+    private int nonMembers;
 
     public int getTotalUsers()
     {
-        return usersWithoutMembership.size() + members.size();
+        return members + nonMembers;
     }
 
-    public Set<SyncUser> getUsersWithoutMembership()
+    public int getNonMembers()
     {
-        return usersWithoutMembership;
+        return nonMembers;
     }
 
-    public void setUsersWithoutMembership(Set<SyncUser> usersWithoutMembership)
+    public void addNonMember()
     {
-        this.usersWithoutMembership = usersWithoutMembership;
+        nonMembers++;
     }
 
-    public Set<SyncUser> getMembers()
+    public int getMembers()
     {
         return members;
     }
 
-    public void setMembers(Set<SyncUser> members)
+    public void addMember()
     {
-        this.members = members;
+        members++;
+    }
+
+    public String toString()
+    {
+        return "Members: " + members + ", non members: " + nonMembers + ", total: " + getTotalUsers();
     }
 }
