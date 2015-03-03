@@ -21,6 +21,7 @@ public class SyncUserCsvWriter
 
         int pshrRelayTotalMatches = 0;
         int pshrRelayBothCruOwned = 0;
+        int aliasCount = 0;
 
         for(SyncUser syncUser: users)
         {
@@ -37,24 +38,23 @@ public class SyncUserCsvWriter
 
                 if(!relayResearchDao.isCruDomain(relayUsername))
                 {
-                    syncUser.setCruDomainRelayUsername("no");
+                    syncUser.setIsCruDomainRelayUsername("no");
                     cruDomains.addNonMember();
                 }
                 else
                 {
                     cruDomains.addMember();
-                    syncUser.setCruDomainRelayUsername("yes");
+                    syncUser.setIsCruDomainRelayUsername("yes");
                 }
             }
 
-            if(!relayResearchDao.isInGoogle(relayUsername))
+            if(syncUser.isInGoogle())
             {
-                googleMembers.addNonMember();
+                googleMembers.addMember();
             }
             else
             {
-                googleMembers.addMember();
-                syncUser.setInGoogle(true);
+                googleMembers.addNonMember();
             }
 
             if(pshrEmail != null && relayUsername != null)
@@ -66,10 +66,18 @@ public class SyncUserCsvWriter
                 }
                 else
                 {
-                    if (relayResearchDao.isCruDomain(pshrEmail) && relayResearchDao.isCruDomain(relayUsername))
+                    if(syncUser.isAlias())
                     {
-                        pshrRelayBothCruOwned++;
-                        syncUser.setEmailsMatch("no, but both are Cru owned");
+                        aliasCount++;
+                        syncUser.setEmailsMatch("no, but PSHR email is an alias");
+                    }
+                    else
+                    {
+                        if (relayResearchDao.isCruDomain(pshrEmail) && relayResearchDao.isCruDomain(relayUsername))
+                        {
+                            pshrRelayBothCruOwned++;
+                            syncUser.setEmailsMatch("no, but both are Cru owned");
+                        }
                     }
                 }
             }
@@ -87,7 +95,7 @@ public class SyncUserCsvWriter
         headers.add("Cru domain (total 'yes': " + cruDomains.getMembers() + ")");
         headers.add("In Google (total 'yes': " + googleMembers.getMembers() + ")");
         headers.add("Relay - PSHR match (total 'yes': " + pshrRelayTotalMatches + ", total 'no but Cru owned': " +
-                pshrRelayBothCruOwned  + ")");
+                pshrRelayBothCruOwned + ", total 'no but PSHR is alias': " + aliasCount + ")");
 
         for(String header: headers)
         {
@@ -102,7 +110,7 @@ public class SyncUserCsvWriter
             writeValue(writer, user.getEmployeeId());
             writeValue(writer, user.getPshrEmail());
             writeValue(writer, user.getRelayUsername());
-            writeValue(writer, user.isCruDomainRelayUsername());
+            writeValue(writer, user.getIsCruDomainRelayUsername());
             writeValue(writer, user.isInGoogle());
             writeValue(writer, user.getEmailsMatch());
 
@@ -116,7 +124,7 @@ public class SyncUserCsvWriter
         System.out.println("Cru domains: " + cruDomains.toString());
         System.out.println("Google: " + googleMembers.toString());
         System.out.println("Users with matching PSHR email and Relay username: " + pshrRelayTotalMatches
-                + ", not matching but Cru domain: " + pshrRelayBothCruOwned);
+                + ", not matching but Cru domain: " + pshrRelayBothCruOwned + ", with an alias: " + aliasCount);
     }
 
     private void writeValue(FileWriter writer, String value) throws IOException

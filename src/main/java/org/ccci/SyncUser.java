@@ -6,6 +6,7 @@ import org.ccci.idm.ldap.attributes.LdapAttributes;
 import org.ccci.idm.ldap.attributes.LdapAttributesActiveDirectory;
 import org.ccci.idm.obj.IdentityUser;
 
+import java.util.Collection;
 import java.util.NoSuchElementException;
 
 /**
@@ -23,8 +24,9 @@ public class SyncUser
     private String department;
     private String status;
 
-    private String cruDomainRelayUsername = "";
+    private String isCruDomainRelayUsername = "";
     private boolean inGoogle;
+    private boolean isAlias;
     private String emailsMatch = "no";
 
     private final LdapAttributes ldapAttributes = new LdapAttributesActiveDirectory();
@@ -49,8 +51,10 @@ public class SyncUser
         pshrEmail = pshrStaff.getEmail();
     }
 
-    public SyncUser(Multimap<String, String> userAttributes)
+    public SyncUser(Multimap<String, String> userAttributes, String pshrEmail)
     {
+        this.pshrEmail = pshrEmail;
+
         employeeId = userAttributes.get(ldapAttributes.employeeNumber).iterator().next();
         firstName = userAttributes.get(ldapAttributes.givenname).iterator().next();
         lastName = userAttributes.get(ldapAttributes.surname).iterator().next();
@@ -60,12 +64,28 @@ public class SyncUser
         {
             ministry = userAttributes.get(ldapAttributes.ministryCode).iterator().next();
         }
-        catch (NoSuchElementException e)
-        {
-
-        }
+        catch (NoSuchElementException e) {}
         department = userAttributes.get(ldapAttributes.departmentNumber).iterator().next();
         status = userAttributes.get(ldapAttributes.employeeStatus).iterator().next();
+
+        Collection<String> memberOfValues = userAttributes.get(ldapAttributes.memberOf);
+        for(String value: memberOfValues)
+        {
+            if(value.contains("CN=GoogleApps"))
+            {
+                inGoogle = true;
+            }
+        }
+
+        Collection<String> proxyAddresses = userAttributes.get(ldapAttributes.proxyAddresses);
+
+        for(String value: proxyAddresses)
+        {
+            if(value.equalsIgnoreCase(pshrEmail))
+            {
+                isAlias = true;
+            }
+        }
     }
 
     public String getStatus()
@@ -128,14 +148,14 @@ public class SyncUser
         this.inGoogle = inGoogle;
     }
 
-    public String isCruDomainRelayUsername()
+    public String getIsCruDomainRelayUsername()
     {
-        return cruDomainRelayUsername;
+        return isCruDomainRelayUsername;
     }
 
-    public void setCruDomainRelayUsername(String isCruDomainRelayUsername)
+    public void setIsCruDomainRelayUsername(String isCruDomainRelayUsername)
     {
-        this.cruDomainRelayUsername = isCruDomainRelayUsername;
+        this.isCruDomainRelayUsername = isCruDomainRelayUsername;
     }
 
     public String getEmailsMatch()
@@ -146,5 +166,15 @@ public class SyncUser
     public void setEmailsMatch(String emailsMatch)
     {
         this.emailsMatch = emailsMatch;
+    }
+
+    public boolean isAlias()
+    {
+        return isAlias;
+    }
+
+    public void setAlias(boolean isAlias)
+    {
+        this.isAlias = isAlias;
     }
 }

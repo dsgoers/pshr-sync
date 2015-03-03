@@ -6,7 +6,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import org.ccci.idm.dao.LdapEntryDaoImpl;
-import org.ccci.idm.dao.exception.EntryLookupException;
 import org.ccci.idm.dao.exception.EntryLookupMoreThanOneResultException;
 import org.ccci.idm.dao.exception.EntryLookupNoResultsException;
 import org.ccci.idm.dao.pshr.PSHRStaff;
@@ -15,10 +14,8 @@ import org.ccci.idm.ldap.attributes.LdapAttributes;
 import org.ccci.idm.ldap.attributes.LdapAttributesActiveDirectory;
 import org.ccci.util.properties.PropertiesWithFallback;
 
-import javax.naming.NamingException;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -68,8 +65,7 @@ public class RelayResearchDao
                 Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(searchAttributes,
                         returnAttributes);
 
-                SyncUser syncUser = new SyncUser(userAttributes);
-                syncUser.setPshrEmail(pshrUser.getEmail());
+                SyncUser syncUser = new SyncUser(userAttributes, pshrUser.getEmail());
                 syncUsers.add(syncUser);
             }
             catch (EntryLookupNoResultsException e)
@@ -87,42 +83,6 @@ public class RelayResearchDao
         }
 
         return syncUsers;
-    }
-
-    public boolean isInGoogle(String relayUsername) throws NamingException
-    {
-        if(relayUsername == null)
-        {
-            return false;
-        }
-
-        try
-        {
-            Map<String, String> searchAttributes = Maps.newHashMap();
-            searchAttributes.put(ldapAttributes.username, relayUsername);
-
-            Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(searchAttributes,
-                    returnAttributes);
-            Collection<String> memberOfValues = userAttributes.get(ldapAttributes.memberOf);
-
-            for(String value: memberOfValues)
-            {
-                if(value.contains("CN=GoogleApps"))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-        catch (EntryLookupException e)
-        {
-            //System.out.println(e.getMessage());
-        }
-        catch(NoSuchElementException e)
-        {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     public boolean isCruDomain(String email) throws IOException
@@ -160,6 +120,7 @@ public class RelayResearchDao
         returnAttributes.add(ldapAttributes.departmentNumber);
         returnAttributes.add(ldapAttributes.employeeStatus);
         returnAttributes.add(ldapAttributes.memberOf);
+        returnAttributes.add(ldapAttributes.proxyAddresses);
 
         return returnAttributes;
     }
