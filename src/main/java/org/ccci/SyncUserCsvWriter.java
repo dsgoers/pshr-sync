@@ -118,10 +118,8 @@ public class SyncUserCsvWriter
     {
         if(value != null)
         {
-            if(value.contains(","))
-            {
-                value = "\"" + value + "\"";
-            }
+            value = value.contains(",") ? "\"" + value + "\"" : value;
+
             value = value.trim();
         }
         else
@@ -135,17 +133,7 @@ public class SyncUserCsvWriter
 
     private void writeValue(FileWriter writer, boolean condition) throws IOException
     {
-        String value;
-        if(condition)
-        {
-            value = "yes";
-        }
-        else
-        {
-            value = "no";
-        }
-
-        writer.append(value);
+        writer.append(condition ? "yes" : "no");
         writer.append(',');
     }
 
