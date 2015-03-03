@@ -1,8 +1,10 @@
 package org.ccci;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import org.ccci.idm.dao.LdapEntryDaoImpl;
 import org.ccci.idm.dao.exception.EntryLookupException;
 import org.ccci.idm.dao.exception.EntryLookupMoreThanOneResultException;
@@ -14,8 +16,8 @@ import org.ccci.idm.ldap.attributes.LdapAttributesActiveDirectory;
 import org.ccci.util.properties.PropertiesWithFallback;
 
 import javax.naming.NamingException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,10 @@ public class RelayResearchDao
 {
     private final LdapAttributes ldapAttributes = new LdapAttributesActiveDirectory();
 
-    private final String ldapPropertiesFile = "/apps/apps-config/adldsproperties.properties";
+    private final String ldapPropertiesFileLocation = "/apps/apps-config/adldsproperties.properties";
+    private final String emailDomainsFileLocation = "/apps/apps-config/emailDomains.properties";
+
+    private File emailDomainsFile;
 
     private LdapEntryDaoImpl ldapEntryDao;
 
@@ -38,11 +43,13 @@ public class RelayResearchDao
 
     public RelayResearchDao() throws Exception
     {
-        Properties properties = new PropertiesWithFallback(false, ldapPropertiesFile);
+        Properties properties = new PropertiesWithFallback(false, ldapPropertiesFileLocation);
 
         ldapEntryDao = new LdapEntryDaoImpl(new Ldap(properties.getProperty("ldapUrl"),
                 properties.getProperty("ldapUsername"), properties.getProperty("ldapPassword")),
                 properties.getProperty("ldapBaseDn"));
+
+        emailDomainsFile = new File(emailDomainsFileLocation);
 
         returnAttributes = getReturnAttributes();
     }
@@ -82,12 +89,17 @@ public class RelayResearchDao
         return syncUsers;
     }
 
-    public boolean isInGoogle(SyncUser syncUser) throws NamingException
+    public boolean isInGoogle(String relayUsername) throws NamingException
     {
+        if(relayUsername == null)
+        {
+            return false;
+        }
+
         try
         {
             Map<String, String> searchAttributes = Maps.newHashMap();
-            searchAttributes.put(ldapAttributes.username, syncUser.getRelayUsername());
+            searchAttributes.put(ldapAttributes.username, relayUsername);
 
             Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(searchAttributes,
                     returnAttributes);
@@ -113,27 +125,26 @@ public class RelayResearchDao
         return false;
     }
 
-    public boolean isCruDomain(String domain)
+    public boolean isCruDomain(String email) throws IOException
     {
-        return getCruDomains().contains(domain.toLowerCase());
+        String domain = email.substring(email.indexOf("@") + 1).toLowerCase();
+
+        List<String> cruDomains = getCruDomains();
+
+        for(String cruDomain: cruDomains)
+        {
+            if(cruDomain.toLowerCase().equals(domain))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    private List<String> getCruDomains()
+    private List<String> getCruDomains() throws IOException
     {
-        String cruDomains = ("cru.org,agapeitalia.eu,agapeitalia.org,aiaretreatcenter.com,aiasportscomplex.com," +
-                "anythingcantalk.com,arc.gt,arclight.org,arrowheadconferences.org,arrowheadsprings.org," +
-                "athletesinaction.org,beyondtheultimate.org,bridgesinternational.com,brokenphonebooth.com," +
-                "campuscrusadeforchrist.com,ccci.org,ce-un.org,crumilitary.org,destinomovement.com,epicmovement.com," +
-                "facultycommons.org,familylife.com,gcfccc.org,giftandestate.org,gocampus.org,historyshandful.org," +
-                "hopefororphans.org,inspirationalfilms.com,isponline.org,isptrips.org,jesusfactorfiction.com," +
-                "jesusfilm.org,jesusfilmmedia.org,jesusfilmmissiontrips.org,jesusforchildren.org,jesusvideo.org," +
-                "jfministrypartners.org,keynote.org,magdalenatoday.com,militaryministry.org,milmin.org," +
-                "mission865.org,mpdx.org,mylastdaymovie.com,priorityassociates.org,promail.ru," +
-                "reachinginternationals.com,schindlercenter.com,sharepoint.ccci.org,studentventure.com," +
-                "table71.org,uscm.org,vidaenfamiliahoy.com,vonettebright.org,womenforjesus.org,zcmanagement.com").toLowerCase();
-
-        return new ArrayList<String>(Arrays.asList(cruDomains.split(",")));
-
+        return Files.readLines(emailDomainsFile, Charsets.UTF_8);
     }
 
     private Set<String> getReturnAttributes()
