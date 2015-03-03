@@ -18,7 +18,9 @@ public class SyncUserCsvWriter
         UserMembershipInfo relayMembers = new UserMembershipInfo();
         UserMembershipInfo cruDomains = new UserMembershipInfo();
         UserMembershipInfo googleMembers = new UserMembershipInfo();
+
         int pshrRelayTotalMatches = 0;
+        int pshrRelayBothCruOwned = 0;
 
         for(SyncUser syncUser: users)
         {
@@ -66,6 +68,7 @@ public class SyncUserCsvWriter
                 {
                     if (relayResearchDao.isCruDomain(pshrEmail) && relayResearchDao.isCruDomain(relayUsername))
                     {
+                        pshrRelayBothCruOwned++;
                         syncUser.setEmailsMatch("no, but both are Cru owned");
                     }
                 }
@@ -83,7 +86,8 @@ public class SyncUserCsvWriter
         headers.add("Relay username (in Relay: " + relayMembers.getMembers() + ")");
         headers.add("Cru domain (total 'yes': " + cruDomains.getMembers() + ")");
         headers.add("In Google (total 'yes': " + googleMembers.getMembers() + ")");
-        headers.add("Relay - PSHR match (total 'yes': " + pshrRelayTotalMatches + ")");
+        headers.add("Relay - PSHR match (total 'yes': " + pshrRelayTotalMatches + ", total 'no but Cru owned': " +
+                pshrRelayBothCruOwned  + ")");
 
         for(String header: headers)
         {
@@ -111,7 +115,8 @@ public class SyncUserCsvWriter
         System.out.println("Relay: " + relayMembers.toString());
         System.out.println("Cru domains: " + cruDomains.toString());
         System.out.println("Google: " + googleMembers.toString());
-        System.out.println("Users with matching PSHR email and Relay username: " + pshrRelayTotalMatches);
+        System.out.println("Users with matching PSHR email and Relay username: " + pshrRelayTotalMatches
+                + ", not matching but Cru domain: " + pshrRelayBothCruOwned);
     }
 
     private void writeValue(FileWriter writer, String value) throws IOException
