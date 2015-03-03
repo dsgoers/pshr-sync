@@ -102,6 +102,9 @@ public class SyncUserCsvWriter
             writer.append('\n');
         }
 
+        writer.flush();
+        writer.close();
+
         System.out.println("Relay: " + relayMembers.toString());
         System.out.println("Cru domains: " + cruDomains.toString());
         System.out.println("Google: " + googleMembers.toString());
