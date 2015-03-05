@@ -81,7 +81,7 @@ public class SyncUser
 
         for(String value: proxyAddresses)
         {
-            if(value.equalsIgnoreCase(pshrEmail))
+            if(value.toLowerCase().contains(pshrEmail.toLowerCase()))
             {
                 isAlias = true;
             }
