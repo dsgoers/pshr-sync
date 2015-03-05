@@ -86,6 +86,8 @@ public class SyncUserCsvWriter
 
         FileWriter writer = new FileWriter(fileName);
 
+        int nonCruMismatches = users.size() - pshrRelayTotalMatches - pshrRelayBothCruOwned - aliasCount;
+
         List<String> headers = Lists.newArrayList();
         headers.add("First name");
         headers.add("Last name");
@@ -95,7 +97,8 @@ public class SyncUserCsvWriter
         headers.add("Cru domain (total 'yes': " + cruDomains.getMembers() + ")");
         headers.add("In Google (total 'yes': " + googleMembers.getMembers() + ")");
         headers.add("Relay - PSHR match (total 'yes': " + pshrRelayTotalMatches + ", total 'no but Cru owned': " +
-                pshrRelayBothCruOwned + ", total 'no but PSHR is alias': " + aliasCount + ")");
+                pshrRelayBothCruOwned + ", total 'no but PSHR is alias': " + aliasCount + ", total 'no': " +
+                nonCruMismatches + ")");
 
         for(String header: headers)
         {
@@ -124,7 +127,8 @@ public class SyncUserCsvWriter
         System.out.println("Cru domains: " + cruDomains.toString());
         System.out.println("Google: " + googleMembers.toString());
         System.out.println("Users with matching PSHR email and Relay username: " + pshrRelayTotalMatches
-                + ", not matching but Cru domain: " + pshrRelayBothCruOwned + ", with an alias: " + aliasCount);
+                + ", not matching but Cru domain: " + pshrRelayBothCruOwned + ", with an alias: " + aliasCount
+                + ", not matching and not both Cru owned: " + nonCruMismatches);
     }
 
     private void writeValue(FileWriter writer, String value) throws IOException
