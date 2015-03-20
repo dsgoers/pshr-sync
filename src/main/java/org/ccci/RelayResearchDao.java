@@ -30,9 +30,11 @@ public class RelayResearchDao
     private final LdapAttributes ldapAttributes = new LdapAttributesActiveDirectory();
 
     private final String ldapPropertiesFileLocation = "/apps/apps-config/adldsproperties.properties";
-    private final String emailDomainsFileLocation = "/apps/apps-config/emailDomains.properties";
+    private final String keepEmailDomainsFileLocation = "/apps/apps-config/keepEmailDomains.properties";
+    private final String dropEmailDomainsFileLocation = "/apps/apps-config/dropEmailDomains.properties";
 
-    private File emailDomainsFile;
+    private File keepEmailDomainsFile;
+    private File dropEmailDomainsFile;
 
     private LdapEntryDaoImpl ldapEntryDao;
 
@@ -46,7 +48,8 @@ public class RelayResearchDao
                 properties.getProperty("ldapUsername"), properties.getProperty("ldapPassword")),
                 properties.getProperty("ldapBaseDn"));
 
-        emailDomainsFile = new File(emailDomainsFileLocation);
+        keepEmailDomainsFile = new File(keepEmailDomainsFileLocation);
+        dropEmailDomainsFile = new File(dropEmailDomainsFileLocation);
 
         returnAttributes = getReturnAttributes();
     }
@@ -85,27 +88,33 @@ public class RelayResearchDao
         return syncUsers;
     }
 
-    public boolean isCruDomain(String email) throws IOException
+    public SyncUserData.Status isCruDomain(String email) throws IOException
     {
         String domain = email.substring(email.indexOf("@") + 1).toLowerCase();
 
-        List<String> cruDomains = getCruDomains();
+        List<String> domains = Files.readLines(keepEmailDomainsFile, Charsets.UTF_8);
 
-        for(String cruDomain: cruDomains)
+        for(String cruDomain: domains)
         {
             if(cruDomain.toLowerCase().equals(domain))
             {
-                return true;
+                return SyncUserData.Status.approved;
             }
         }
 
-        return false;
+        domains = Files.readLines(dropEmailDomainsFile, Charsets.UTF_8);
+
+        for(String cruDomain: domains)
+        {
+            if(cruDomain.toLowerCase().equals(domain))
+            {
+                return SyncUserData.Status.nonapproved;
+            }
+        }
+
+        return SyncUserData.Status.nonCru;
     }
 
-    private List<String> getCruDomains() throws IOException
-    {
-        return Files.readLines(emailDomainsFile, Charsets.UTF_8);
-    }
 
     private Set<String> getReturnAttributes()
     {

@@ -24,10 +24,8 @@ public class SyncUser
     private String department;
     private String status;
 
-    private String isCruDomainRelayUsername = "";
     private boolean inGoogle;
     private boolean isAlias;
-    private String emailsMatch = "no";
 
     private final LdapAttributes ldapAttributes = new LdapAttributesActiveDirectory();
 
@@ -148,32 +146,12 @@ public class SyncUser
         this.inGoogle = inGoogle;
     }
 
-    public String getIsCruDomainRelayUsername()
-    {
-        return isCruDomainRelayUsername;
-    }
-
-    public void setIsCruDomainRelayUsername(String isCruDomainRelayUsername)
-    {
-        this.isCruDomainRelayUsername = isCruDomainRelayUsername;
-    }
-
-    public String getEmailsMatch()
-    {
-        return emailsMatch;
-    }
-
-    public void setEmailsMatch(String emailsMatch)
-    {
-        this.emailsMatch = emailsMatch;
-    }
-
     public boolean isAlias()
     {
         return isAlias;
     }
 
-    public void setAlias(boolean isAlias)
+    public void setIsAlias(boolean isAlias)
     {
         this.isAlias = isAlias;
     }

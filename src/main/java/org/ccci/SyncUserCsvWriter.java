@@ -1,6 +1,7 @@
 package org.ccci;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import javax.naming.NamingException;
 import java.io.FileWriter;
@@ -15,90 +16,54 @@ public class SyncUserCsvWriter
 {
     public void writeCruGoogleInfoToCsv(String fileName, Set<SyncUser> users, RelayResearchDao relayResearchDao) throws IOException, NamingException
     {
-        UserMembershipInfo relayMembers = new UserMembershipInfo();
-        UserMembershipInfo cruDomains = new UserMembershipInfo();
-        UserMembershipInfo googleMembers = new UserMembershipInfo();
-
-        int pshrRelayTotalMatches = 0;
-        int pshrRelayBothCruOwned = 0;
-        int aliasCount = 0;
+        Set<SyncUserData> userDatas = Sets.newHashSet();
 
         for(SyncUser syncUser: users)
         {
-            String relayUsername = syncUser.getRelayUsername();
-            String pshrEmail = syncUser.getPshrEmail();
+            SyncUserData userData = new SyncUserData(syncUser);
+
+            String relayUsername = userData.getRelayUsername();
+            String pshrEmail = userData.getPshrEmail();
+
+            if(relayUsername != null && pshrEmail != null && relayUsername.equalsIgnoreCase(pshrEmail))
+            {
+                userData.setEmailsMatch(true);
+            }
+
+            if(pshrEmail == null)
+            {
+                userData.setPshrDomain(SyncUserData.Status.none);
+            }
+            else
+            {
+                userData.setPshrDomain(relayResearchDao.isCruDomain(pshrEmail));
+            }
 
             if(relayUsername == null)
             {
-                relayMembers.addNonMember();
+                userData.setRelayDomain(SyncUserData.Status.none);
             }
             else
             {
-                relayMembers.addMember();
-
-                if(!relayResearchDao.isCruDomain(relayUsername))
-                {
-                    syncUser.setIsCruDomainRelayUsername("no");
-                    cruDomains.addNonMember();
-                }
-                else
-                {
-                    cruDomains.addMember();
-                    syncUser.setIsCruDomainRelayUsername("yes");
-                }
+                userData.setRelayDomain(relayResearchDao.isCruDomain(relayUsername));
             }
 
-            if(syncUser.isInGoogle())
-            {
-                googleMembers.addMember();
-            }
-            else
-            {
-                googleMembers.addNonMember();
-            }
-
-            if(pshrEmail != null && relayUsername != null)
-            {
-                if (pshrEmail.equalsIgnoreCase(relayUsername))
-                {
-                    pshrRelayTotalMatches++;
-                    syncUser.setEmailsMatch("yes");
-                }
-                else
-                {
-                    if(syncUser.isAlias())
-                    {
-                        aliasCount++;
-                        syncUser.setEmailsMatch("no, but PSHR email is an alias");
-                    }
-                    else
-                    {
-                        if (relayResearchDao.isCruDomain(pshrEmail) && relayResearchDao.isCruDomain(relayUsername))
-                        {
-                            pshrRelayBothCruOwned++;
-                            syncUser.setEmailsMatch("no, but both are Cru owned");
-                        }
-                    }
-                }
-            }
+            userDatas.add(userData);
         }
 
 
         FileWriter writer = new FileWriter(fileName);
 
-        int nonCruMismatches = users.size() - pshrRelayTotalMatches - pshrRelayBothCruOwned - aliasCount;
-
         List<String> headers = Lists.newArrayList();
         headers.add("First name");
         headers.add("Last name");
-        headers.add("Employee Number (in PSHR: " + users.size() + ")");
+        headers.add("Employee Number)");
         headers.add("PSHR email");
-        headers.add("Relay username (in Relay: " + relayMembers.getMembers() + ")");
-        headers.add("Cru domain (total 'yes': " + cruDomains.getMembers() + ")");
-        headers.add("In Google (total 'yes': " + googleMembers.getMembers() + ")");
-        headers.add("Relay - PSHR match (total 'yes': " + pshrRelayTotalMatches + ", total 'no but Cru owned': " +
-                pshrRelayBothCruOwned + ", total 'no but PSHR is alias': " + aliasCount + ", total 'no': " +
-                nonCruMismatches + ")");
+        headers.add("PSHR domain");
+        headers.add("Relay username");
+        headers.add("Relay domain");
+        headers.add("In Google");
+        headers.add("Relay - PSHR match");
 
         for(String header: headers)
         {
@@ -106,29 +71,23 @@ public class SyncUserCsvWriter
         }
         writer.append('\n');
 
-        for(SyncUser user: users)
+        for(SyncUserData user: userDatas)
         {
             writeValue(writer, user.getFirstName());
             writeValue(writer, user.getLastName());
             writeValue(writer, user.getEmployeeId());
             writeValue(writer, user.getPshrEmail());
+            writeValue(writer, user.getPshrDomain().name());
             writeValue(writer, user.getRelayUsername());
-            writeValue(writer, user.getIsCruDomainRelayUsername());
+            writeValue(writer, user.getRelayDomain().name());
             writeValue(writer, user.isInGoogle());
-            writeValue(writer, user.getEmailsMatch());
+            writeValue(writer, user.emailsMatch());
 
             writer.append('\n');
         }
 
         writer.flush();
         writer.close();
-
-        System.out.println("Relay: " + relayMembers.toString());
-        System.out.println("Cru domains: " + cruDomains.toString());
-        System.out.println("Google: " + googleMembers.toString());
-        System.out.println("Users with matching PSHR email and Relay username: " + pshrRelayTotalMatches
-                + ", not matching but Cru domain: " + pshrRelayBothCruOwned + ", with an alias: " + aliasCount
-                + ", not matching and not both Cru owned: " + nonCruMismatches);
     }
 
     private void writeValue(FileWriter writer, String value) throws IOException
