@@ -34,7 +34,7 @@ public class SyncUserCsvWriter
                 userData.setEmailsMatch(true);
             }
 
-            if(pshrEmail == null)
+            if(pshrEmail == null || pshrEmail.trim().equals(""))
             {
                 userData.setPshrDomain(Status.none);
             }
@@ -43,7 +43,7 @@ public class SyncUserCsvWriter
                 userData.setPshrDomain(relayResearchDao.isCruDomain(pshrEmail));
             }
 
-            if(relayUsername == null)
+            if(relayUsername == null || relayUsername.trim().equals(""))
             {
                 userData.setRelayDomain(Status.none);
             }
@@ -63,7 +63,7 @@ public class SyncUserCsvWriter
         List<String> headers = Lists.newArrayList();
         headers.add("First name");
         headers.add("Last name");
-        headers.add("Employee Number)");
+        headers.add("Employee Number");
         headers.add("PSHR email");
         headers.add("PSHR domain");
         headers.add("Relay username");
