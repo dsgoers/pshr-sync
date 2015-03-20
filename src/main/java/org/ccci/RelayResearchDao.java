@@ -22,6 +22,8 @@ import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.Set;
 
+import org.ccci.SyncUserData.Status;
+
 /**
  * Created by dsgoers on 2/6/15.
  */
@@ -88,7 +90,7 @@ public class RelayResearchDao
         return syncUsers;
     }
 
-    public SyncUserData.Status isCruDomain(String email) throws IOException
+    public Status isCruDomain(String email) throws IOException
     {
         String domain = email.substring(email.indexOf("@") + 1).toLowerCase();
 
@@ -98,7 +100,7 @@ public class RelayResearchDao
         {
             if(cruDomain.toLowerCase().equals(domain))
             {
-                return SyncUserData.Status.approved;
+                return Status.approved;
             }
         }
 
@@ -108,11 +110,11 @@ public class RelayResearchDao
         {
             if(cruDomain.toLowerCase().equals(domain))
             {
-                return SyncUserData.Status.nonapproved;
+                return Status.nonapproved;
             }
         }
 
-        return SyncUserData.Status.nonCru;
+        return Status.nonCru;
     }
 
 
