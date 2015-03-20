@@ -9,6 +9,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import org.ccci.SyncUserData.Status;
+import org.ccci.SyncUserData.Scenario;
+
+
 /**
  * Created by dsgoers on 2/17/15.
  */
@@ -32,7 +36,7 @@ public class SyncUserCsvWriter
 
             if(pshrEmail == null)
             {
-                userData.setPshrDomain(SyncUserData.Status.none);
+                userData.setPshrDomain(Status.none);
             }
             else
             {
@@ -41,12 +45,14 @@ public class SyncUserCsvWriter
 
             if(relayUsername == null)
             {
-                userData.setRelayDomain(SyncUserData.Status.none);
+                userData.setRelayDomain(Status.none);
             }
             else
             {
                 userData.setRelayDomain(relayResearchDao.isCruDomain(relayUsername));
             }
+
+            setScenario(userData);
 
             userDatas.add(userData);
         }
@@ -64,6 +70,7 @@ public class SyncUserCsvWriter
         headers.add("Relay domain");
         headers.add("In Google");
         headers.add("Relay - PSHR match");
+        headers.add("Scenario");
 
         for(String header: headers)
         {
@@ -82,6 +89,7 @@ public class SyncUserCsvWriter
             writeValue(writer, user.getRelayDomain().name());
             writeValue(writer, user.isInGoogle());
             writeValue(writer, user.emailsMatch());
+            writeValue(writer, user.getScenario().name());
 
             writer.append('\n');
         }
@@ -89,6 +97,52 @@ public class SyncUserCsvWriter
         writer.flush();
         writer.close();
     }
+
+    private void setScenario(SyncUserData userData)
+    {
+        boolean emailsMatch = userData.emailsMatch();
+        Status pshrDomain = userData.getPshrDomain();
+        Status relayDomain = userData.getRelayDomain();
+
+        if(emailsMatch && relayDomain == Status.approved && pshrDomain == Status.approved)
+        {
+            userData.setScenario(Scenario.i);
+        }
+        else if(!emailsMatch && relayDomain == Status.approved && pshrDomain == Status.approved)
+        {
+            userData.setScenario(Scenario.ii);
+        }
+        else if(!emailsMatch && relayDomain == Status.approved && pshrDomain != Status.approved)
+        {
+            userData.setScenario(Scenario.iii);
+        }
+        else if(!emailsMatch && relayDomain == Status.nonapproved && pshrDomain == Status.approved)
+        {
+            userData.setScenario(Scenario.iv);
+        }
+        else if(!emailsMatch && (relayDomain == Status.nonCru || relayDomain == Status.none) && pshrDomain == Status
+                .approved)
+        {
+            userData.setScenario(Scenario.v);
+        }
+        else if(!emailsMatch && relayDomain == Status.nonapproved && pshrDomain != Status.approved)
+        {
+            userData.setScenario(Scenario.vi);
+        }
+        else if(!emailsMatch && (relayDomain == Status.nonCru || relayDomain == Status.none) && pshrDomain != Status.approved)
+        {
+            userData.setScenario(Scenario.vii);
+        }
+        else if(emailsMatch && relayDomain == Status.nonapproved && pshrDomain != Status.approved)
+        {
+            userData.setScenario(Scenario.viii);
+        }
+        else if(emailsMatch && (relayDomain == Status.nonCru || relayDomain == Status.none) && pshrDomain != Status.approved)
+        {
+            userData.setScenario(Scenario.ix);
+        }
+    }
+
 
     private void writeValue(FileWriter writer, String value) throws IOException
     {
