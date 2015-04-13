@@ -2,3 +2,5 @@
 .idea*
 migration.log
 /.idea
+pshr-sync.iml
+.idea/**
