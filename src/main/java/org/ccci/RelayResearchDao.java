@@ -6,6 +6,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import org.ccci.idm.dao.LdapEntryDaoImpl;
+import org.ccci.idm.dao.exception.EntryLookupException;
 import org.ccci.idm.dao.exception.EntryLookupMoreThanOneResultException;
 import org.ccci.idm.dao.exception.EntryLookupNoResultsException;
 import org.ccci.idm.dao.pshr.PSHRStaff;
@@ -79,7 +80,23 @@ public class RelayResearchDao
             }
             catch(EntryLookupMoreThanOneResultException e)
             {
-                System.out.println("User has more than one relay account: " + pshrUser.toString());
+                Map<String, String> moreSearchAttributes = Maps.newHashMap();
+                moreSearchAttributes.put(ldapAttributes.employeeNumber, pshrUser.getEmployeeId());
+                moreSearchAttributes.put(ldapAttributes.givenname, pshrUser.getFirstName());
+                moreSearchAttributes.put(ldapAttributes.surname, pshrUser.getLastName());
+
+                try
+                {
+                    Multimap<String, String> userAttributes = ldapEntryDao.getLdapEntry(moreSearchAttributes,
+                            returnAttributes);
+
+                    SyncUser syncUser = new SyncUser(userAttributes, pshrUser.getEmail());
+                    syncUsers.add(syncUser);
+                }
+                catch (EntryLookupException exception)
+                {
+                    System.out.println("Could not find exactly one entry: " + pshrUser.toString());
+                }
             }
             catch(NoSuchElementException e)
             {
