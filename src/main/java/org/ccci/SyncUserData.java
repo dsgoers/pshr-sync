@@ -8,6 +8,7 @@ public class SyncUserData
     private String employeeId;
     private String firstName;
     private String lastName;
+    private String prefName;
     private String pshrEmail;
     private String relayUsername;
     private boolean inGoogle;
@@ -27,9 +28,15 @@ public class SyncUserData
         employeeId = syncUser.getEmployeeId();
         firstName = syncUser.getFirstName();
         lastName = syncUser.getLastName();
+        prefName = syncUser.getPrefName();
         pshrEmail = syncUser.getPshrEmail();
         relayUsername = syncUser.getRelayUsername();
         inGoogle = syncUser.isInGoogle();
+    }
+
+    public String getPrefName()
+    {
+        return prefName;
     }
 
     public Status getPshrDomain()

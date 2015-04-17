@@ -128,6 +128,7 @@ public class SyncUserCsvWriter
         List<String> headers = Lists.newArrayList();
         headers.add("First name");
         headers.add("Last name");
+        headers.add("Preferred name");
         headers.add("Employee Number");
         headers.add("PSHR email");
         headers.add("PSHR domain");
@@ -143,6 +144,7 @@ public class SyncUserCsvWriter
         }
         writer.append('\n');
 
+        writeValue(writer, null);
         writeValue(writer, null);
         writeValue(writer, null);
         writeValue(writer, "Total in PSHR: " + userDatas.size());
@@ -162,6 +164,7 @@ public class SyncUserCsvWriter
         {
             writeValue(writer, user.getFirstName());
             writeValue(writer, user.getLastName());
+            writeValue(writer, user.getPrefName());
             writeValue(writer, user.getEmployeeId());
             writeValue(writer, user.getPshrEmail());
             writeValue(writer, user.getPshrDomain().name());

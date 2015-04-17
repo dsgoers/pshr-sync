@@ -142,6 +142,7 @@ public class RelayResearchDao
         returnAttributes.add(ldapAttributes.employeeNumber);
         returnAttributes.add(ldapAttributes.givenname);
         returnAttributes.add(ldapAttributes.surname);
+        returnAttributes.add(ldapAttributes.preferredName);
         returnAttributes.add(ldapAttributes.username);
         returnAttributes.add(ldapAttributes.designationId);
         returnAttributes.add(ldapAttributes.ministryCode);

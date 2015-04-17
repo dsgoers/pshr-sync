@@ -17,6 +17,7 @@ public class SyncUser
     private String employeeId;
     private String firstName;
     private String lastName;
+    private String prefName;
     private String pshrEmail;
     private String relayUsername;
     private String designation;
@@ -46,6 +47,7 @@ public class SyncUser
         employeeId = pshrStaff.getEmployeeId();
         firstName = pshrStaff.getFirstName();
         lastName = pshrStaff.getLastName();
+        prefName = pshrStaff.getPrefName();
         pshrEmail = pshrStaff.getEmail();
     }
 
@@ -56,6 +58,7 @@ public class SyncUser
         employeeId = userAttributes.get(ldapAttributes.employeeNumber).iterator().next();
         firstName = userAttributes.get(ldapAttributes.givenname).iterator().next();
         lastName = userAttributes.get(ldapAttributes.surname).iterator().next();
+        prefName = userAttributes.get(ldapAttributes.preferredName).iterator().next();
         relayUsername = userAttributes.get(ldapAttributes.username).iterator().next();
         designation = userAttributes.get(ldapAttributes.designationId).iterator().next();
         try
@@ -86,9 +89,9 @@ public class SyncUser
         }
     }
 
-    public String getStatus()
+    public String getPrefName()
     {
-        return status;
+        return prefName;
     }
 
     public String getEmployeeId()
@@ -116,43 +119,8 @@ public class SyncUser
         return relayUsername;
     }
 
-    public String getDesignation()
-    {
-        return designation;
-    }
-
-    public String getMinistry()
-    {
-        return ministry;
-    }
-
-    public String getDepartment()
-    {
-        return department;
-    }
-
-    public void setPshrEmail(String pshrEmail)
-    {
-        this.pshrEmail = pshrEmail;
-    }
-
     public boolean isInGoogle()
     {
         return inGoogle;
-    }
-
-    public void setInGoogle(boolean inGoogle)
-    {
-        this.inGoogle = inGoogle;
-    }
-
-    public boolean isAlias()
-    {
-        return isAlias;
-    }
-
-    public void setIsAlias(boolean isAlias)
-    {
-        this.isAlias = isAlias;
     }
 }
