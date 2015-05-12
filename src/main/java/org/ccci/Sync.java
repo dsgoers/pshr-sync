@@ -1,9 +1,11 @@
 package org.ccci;
 
 import org.ccci.idm.dao.pshr.PSHRStaff;
+import org.ccci.util.properties.PropertiesWithFallback;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -13,7 +15,8 @@ public class Sync
 {
     public static void main(String[] args) throws Exception
     {
-        String directory = "/Users/dsgoers/projects/pshr-csv/";
+        String pshrProperties = "/apps/apps-config/pshrSync.properties";
+        Properties properties = new PropertiesWithFallback(false, pshrProperties);
 
         PSHRResearchDao pshrResearchDao = new PSHRResearchDao();
         RelayResearchDao relayResearchDao = new RelayResearchDao();
@@ -25,7 +28,7 @@ public class Sync
         Set<SyncUser> syncUsers = relayResearchDao.getRelayData(pshrStaffs);
         System.out.println("minus duplicates: " + syncUsers.size() + " users.");
 
-        writer.writeCruGoogleInfoToCsv(directory + "PSHR Relay data " +
+        writer.writeCruGoogleInfoToCsv(properties.getProperty("csvLocation") + "/" + "PSHR Relay data " +
                         new SimpleDateFormat("yyyy_MM_dd HH_mm_ss").format(new Date()) + ".csv", syncUsers,
                 relayResearchDao);
 
