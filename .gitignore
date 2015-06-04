@@ -1,6 +1,7 @@
+target/
+.settings/
+.project
+.classpath
+.idea
 *.iml
-.idea*
 migration.log
-/.idea
-pshr-sync.iml
-.idea/**
