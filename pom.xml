@@ -17,6 +17,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.ccci</groupId>
+            <artifactId>util</artifactId>
+            <version>4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.1</version>
