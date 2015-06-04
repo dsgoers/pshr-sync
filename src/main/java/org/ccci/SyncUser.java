@@ -60,12 +60,16 @@ public class SyncUser
         lastName = userAttributes.get(ldapAttributes.surname).iterator().next();
         prefName = userAttributes.get(ldapAttributes.preferredName).iterator().next();
         relayUsername = userAttributes.get(ldapAttributes.username).iterator().next();
-        designation = userAttributes.get(ldapAttributes.designationId).iterator().next();
+		try
+		{
+			designation = userAttributes.get(ldapAttributes.designationId).iterator().next();
+		}
+		catch (NoSuchElementException e) { /**/ }
         try
         {
             ministry = userAttributes.get(ldapAttributes.ministryCode).iterator().next();
         }
-        catch (NoSuchElementException e) {}
+        catch (NoSuchElementException e) { /**/ }
         department = userAttributes.get(ldapAttributes.departmentNumber).iterator().next();
         status = userAttributes.get(ldapAttributes.employeeStatus).iterator().next();
 
